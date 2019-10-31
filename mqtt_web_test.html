@@ -22,9 +22,9 @@
             function onConnect() {
                 // Once a connection has been made, make a subscription and send a message.
                 console.log("onConnect");
-                client.subscribe("World");
+                client.subscribe("pycam/captures/#");
                 message = new Paho.MQTT.Message("Hello");
-                message.destinationName = "World";
+                message.destinationName = "pycam/control/wc1";
                 client.send(message);
             }
 
@@ -37,7 +37,9 @@
 
             // called when a message arrives
             function onMessageArrived(message) {
-                console.log("onMessageArrived: "+message.payloadString);
+                //console.log("onMessageArrived: " + message.payloadString);
+
+                document.getElementById('cam').src = 'data:image/png;base64,' + message.payloadString;
             }
 
         </script>
@@ -47,6 +49,8 @@
     <body>
 
         <div id='mqtt'>
+
+            <img id='cam' src=''/>
 
         </div>
 
