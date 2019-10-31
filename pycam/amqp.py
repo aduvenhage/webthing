@@ -50,3 +50,25 @@ def amqp_channel(channel_number=None):
             channel = amqp_connection().channel(channel_number)
             __amqp_channels[channel_number] = channel
             return channel
+
+
+def amqp_subscribe(channel_number=None, callback=None, routing_key=None):
+    """
+    Create queue, bind it and start consuming
+    """
+    result = amqp_channel(channel_number).queue_declare('', exclusive=True, auto_delete=True)
+    queue_name = result.method.queue
+
+    amqp_channel().queue_bind(exchange=amqp_config()['exchange'], queue=queue_name, routing_key=routing_key)
+    amqp_channel().basic_consume(queue=queue_name, on_message_callback=callback, auto_ack=True)
+
+
+def amqp_process_data_events():
+    """
+    Consume all data events
+    """
+    try:
+        amqp_connection().process_data_events(time_limit=0)
+
+    except Exception:
+        pass

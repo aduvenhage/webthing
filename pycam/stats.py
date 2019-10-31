@@ -1,18 +1,8 @@
 import statsd
+from config import stats_config
 
-
-
-# default config
-__stats_config = {
-    'host': 'localhost',
-    'port': 8125
-}
 
 __stats_client = None
-
-
-def stats_config():
-    return __stats_config
 
 
 def stats():
