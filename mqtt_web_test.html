@@ -33,13 +33,17 @@
                 if (responseObject.errorCode !== 0) {
                     console.log("onConnectionLost: "+responseObject.errorMessage);
                 }
+
+                // connect the client
+                client.connect({onSuccess:onConnect});
             }
 
             // called when a message arrives
             function onMessageArrived(message) {
-                //console.log("onMessageArrived: " + message.payloadString);
+                console.log("onMessageArrived: " + message.payloadString);
 
-                document.getElementById('cam').src = 'data:image/png;base64,' + message.payloadString;
+                //document.getElementById('cam').src = 'data:image/png;base64,' + message.payloadString;
+                document.getElementById('mqtt').innerHTML = message.payloadString.length;
             }
 
         </script>

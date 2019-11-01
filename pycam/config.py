@@ -15,7 +15,7 @@ __amqp_config = {
     'username': 'guest',
     'password': 'guest',
     'host': 'localhost',
-    'port': 5673,
+    'port': 5672,
     'virtual_host': '/'
 }
 

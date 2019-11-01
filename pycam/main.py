@@ -2,8 +2,8 @@ import base64
 import time
 
 from config import config
-from amqp import amqp_channel, amqp_connection, amqp_subscribe, amqp_process_data_events
-from cvcam import cv_capture_jpeg_frame
+from amqp import amqp
+from cvcam import cv
 from stats import stats, stats_config
 
 
@@ -13,15 +13,15 @@ def command_callback(ch, method, properties, body):
 
 def main():
     # create camera command subscription
-    amqp_subscribe(callback=command_callback, routing_key=config()['cmd_topic'])
+    amqp().subscribe(channel_number=2, callback=command_callback, routing_key=config()['cmd_topic'])
 
     while True:
         # read from AMQP (callback will be called on data events)
-        amqp_process_data_events()
+        amqp().process_data_events()
 
         # read one frame
         with stats().timer('cv.imgread'):
-            encimg = cv_capture_jpeg_frame()
+            encimg = cv().capture_jpeg_frame()
             print('jpeg = %d bytes' % (int(encimg.nbytes)))
 
         # publish frame
@@ -31,7 +31,7 @@ def main():
         print('b64 = %d bytes' % (len(imgBlob)))
 
         with stats().timer('cv.imgpub'):
-            amqp_channel(2).basic_publish(exchange='amq.topic', routing_key=config()['cap_topic'], body=imgBlob)
+            amqp().publish(routing_key=config()['cap_topic'], body=imgBlob)
 
         # stuff
         stats().incr('frames')

@@ -2,61 +2,70 @@ import cv2
 from config import cv_config
 
 
-__cv_cap = None
+class CvCapture:
+    def __init__(self, device=0, video_width=320, jpeg_quality=90):
+        """
+        Create capture device
+        """
+        self.__cv_cap = cv2.VideoCapture(device)
+        self.__video_width = video_width
+        self.__video_height = 0
+        self.__jpeg_quality = jpeg_quality
 
+        self.__encode_param = [
+            int(cv2.IMWRITE_JPEG_QUALITY),
+            self.__jpeg_quality
+        ]
 
-def cv_cap():
-    """
-    Setup capture device
-    """
-    global __cv_cap
+    def capture_jpeg_frame(self):
+        """
+        Capture low-res video frame
+        """
+        ret, frame = self.__cv_cap.read()
 
-    if not __cv_cap:
-        __cv_cap = cv2.VideoCapture(cv_config()['device'])
+        if ret:
+            # calc video scale
+            if not self.__video_height:
+                frame_height, frame_width = frame.shape[:2]
+                scale = float(self.__video_width) / frame_width
+                self.__video_height = int(scale * frame_height + 0.5)
 
-        # setup high res
+            # scale to low res
+            if self.__video_height:
+                frame_lr = cv2.resize(frame, (self.__video_width, self.__video_height))
 
-    return __cv_cap
+                # encode low res frame to JPEG
+                result, encimg = cv2.imencode('.jpg', frame_lr, self.__encode_param)
+                return encimg
 
+        return None
 
-def cv_capture_jpeg_frame():
-    """
-    Capture low-res video frame
-    """
-    ret, frame = cv_cap().read()
+    def capture_jpeg_still(self, quality=90):
+        """
+        Capture high-res still
+        """
+        ret, frame = self.__cv_cap.read()
 
-    if ret:
-        # scale to low res
-        frame_height, frame_width = frame.shape[:2]
-        target_width = cv_config()['video_width']
-        scale = float(target_width) / frame_width
-        target_height = int(scale * frame_height + 0.5)
+        if ret:
+            # encode to JPEG
+            result, encimg = cv2.imencode('.jpg', frame, self.__encode_param)
+            return encimg
 
-        frame_lr = cv2.resize(frame, (target_width, target_height))
-
-        # encode low res frame to JPEG
-        quality = cv_config()['jpeg_quality']
-        encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), quality]
-        result, encimg = cv2.imencode('.jpg', frame_lr, encode_param)
-
-        return encimg
-
-    else:
         return None
 
 
-def cv_capture_jpeg_still():
+__cv_capture = None
+
+
+def cv():
     """
-    Capture high-res still
+    Creates OpenCV capture instance
     """
-    ret, frame = cv_cap().read()
+    global __cv_capture
 
-    if ret:
-        # encode to JPEG
-        encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), cv_config()['quality']]
-        result, encimg = cv2.imencode('.jpg', frame, encode_param)
+    if not __cv_capture:
+        __cv_capture = CvCapture(device=cv_config()['device'],
+                                 jpeg_quality=cv_config()['jpeg_quality'],
+                                 video_width=cv_config()['video_width'])
 
-        return encimg
-
-    else:
-        return None
+    return __cv_capture
