@@ -23,7 +23,7 @@
                 // Once a connection has been made, make a subscription and send a message.
                 console.log("onConnect");
                 client.subscribe("pycam/captures/#");
-                message = new Paho.MQTT.Message("Hello");
+                message = new Paho.MQTT.Message('{"message": "Hello"}');
                 message.destinationName = "pycam/control/wc1";
                 client.send(message);
             }
@@ -34,16 +34,20 @@
                     console.log("onConnectionLost: "+responseObject.errorMessage);
                 }
 
-                // connect the client
-                client.connect({onSuccess:onConnect});
+                // reconnect the client
+                window.setTimeout(function () {
+                    client.connect({
+                        onSuccess:onConnect
+                    });
+                }, 4000);
             }
 
             // called when a message arrives
             function onMessageArrived(message) {
-                console.log("onMessageArrived: " + message.payloadString);
+                //console.log("onMessageArrived: " + message.payloadString);
 
-                //document.getElementById('cam').src = 'data:image/png;base64,' + message.payloadString;
-                document.getElementById('mqtt').innerHTML = message.payloadString.length;
+                document.getElementById('cam').src = 'data:image/png;base64,' + message.payloadString;
+                //document.getElementById('mqtt').innerHTML = message.payloadString.length;
             }
 
         </script>

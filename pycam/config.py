@@ -1,7 +1,8 @@
 __config = {
     'name': 'cam1',
     'cmd_topic': 'pycam.control.#',
-    'cap_topic': 'pycam.captures.cam1.jpeg'
+    'cap_topic_frame': 'pycam.captures.cam1.frame.jpeg',
+    'cap_topic_still': 'pycam.captures.cam1.still.jpeg'
 }
 
 __cv_config = {
