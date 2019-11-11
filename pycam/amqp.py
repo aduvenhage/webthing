@@ -59,12 +59,12 @@ class Amqp:
         ch.queue_bind(exchange=self.__exchange, queue=queue_name, routing_key=routing_key)
         ch.basic_consume(queue=queue_name, on_message_callback=callback, auto_ack=True)
 
-    def process_data_events(self):
+    def process_data_events(self, timeout):
         """
         Consume all data events
         """
         try:
-            self.__amqp_connection.process_data_events(time_limit=0)
+            self.__amqp_connection.process_data_events(time_limit=timeout)
 
         except Exception:
             pass

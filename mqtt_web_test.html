@@ -23,9 +23,11 @@
                 // Once a connection has been made, make a subscription and send a message.
                 console.log("onConnect");
                 client.subscribe("pycam/captures/#");
-                message = new Paho.MQTT.Message('{"message": "Hello"}');
-                message.destinationName = "pycam/control/wc1";
-                client.send(message);
+
+                // setup frame timer
+                window.setTimeout(function () {
+                    captureFrame();
+                }, 50);
             }
 
             // called when the client loses its connection
@@ -45,9 +47,25 @@
             // called when a message arrives
             function onMessageArrived(message) {
                 //console.log("onMessageArrived: " + message.payloadString);
+                //document.getElementById('cam').src = 'data:image/png;base64,' + message.payloadString;
+                document.getElementById('label').innerHTML = message.payloadString.length;
 
-                document.getElementById('cam').src = 'data:image/png;base64,' + message.payloadString;
-                //document.getElementById('mqtt').innerHTML = message.payloadString.length;
+                // restart frame timer
+                window.setTimeout(function () {
+                    captureFrame();
+                }, 50);
+            }
+
+            function captureStill() {
+                message = new Paho.MQTT.Message('{"command": "still"}');
+                message.destinationName = "pycam/control/wc1";
+                client.send(message);
+            }
+
+            function captureFrame() {
+                message = new Paho.MQTT.Message('{"command": "frame"}');
+                message.destinationName = "pycam/control/wc1";
+                client.send(message);
             }
 
         </script>
@@ -56,9 +74,11 @@
 
     <body>
 
-        <div id='mqtt'>
+        <div>
 
-            <img id='cam' src=''/>
+            <div id='label'></div>
+            <img id='cam' src=''/>            
+            <button onclick='captureStill()'>Capture</button>
 
         </div>
 
