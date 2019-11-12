@@ -5,6 +5,8 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.js" type="text/javascript"></script>
 
         <script>
+            var camId = 'cam1';
+            var camWakeTimer = null;
 
             window.onload = function() {
                 // Create a client instance
@@ -14,33 +16,43 @@
                 client.onConnectionLost = onConnectionLost;
                 client.onMessageArrived = onMessageArrived;
 
-                // connect the client
-                client.connect({onSuccess:onConnect});
+                connect()
             };
+
+            // connect to broker
+            function connect() {
+                console.log('connecting...')
+                client.connect({onSuccess:onConnect});
+            }
 
             // called when the client connects
             function onConnect() {
                 // Once a connection has been made, make a subscription and send a message.
                 console.log("onConnect");
                 client.subscribe("pycam/captures/#");
+                client.subscribe("pycam/status/#");
 
-                // setup frame timer
-                window.setTimeout(function () {
-                    captureFrame();
-                }, 50);
+                // wake up cameras
+                wakeUp();
+
+                // setup camera timers
+                camWakeTimer = setInterval(function () {
+                    wakeUp();
+                }, 2000);
             }
 
             // called when the client loses its connection
             function onConnectionLost(responseObject) {
                 if (responseObject.errorCode !== 0) {
-                    console.log("onConnectionLost: "+responseObject.errorMessage);
+                    console.log("onConnectionLost: " + responseObject.errorMessage);
+
+                    // kill camera timer(s)
+                    window.clearInterval(camWakeTimer)
                 }
 
                 // reconnect the client
                 window.setTimeout(function () {
-                    client.connect({
-                        onSuccess:onConnect
-                    });
+                    connect()
                 }, 4000);
             }
 
@@ -48,23 +60,19 @@
             function onMessageArrived(message) {
                 //console.log("onMessageArrived: " + message.payloadString);
                 //document.getElementById('cam').src = 'data:image/png;base64,' + message.payloadString;
+                console.log(message)
                 document.getElementById('label').innerHTML = message.payloadString.length;
-
-                // restart frame timer
-                window.setTimeout(function () {
-                    captureFrame();
-                }, 50);
             }
 
             function captureStill() {
-                message = new Paho.MQTT.Message('{"command": "still"}');
-                message.destinationName = "pycam/control/wc1";
+                message = new Paho.MQTT.Message('{"command": "capture"}');
+                message.destinationName = 'pycam/control/' + camId;
                 client.send(message);
             }
 
-            function captureFrame() {
-                message = new Paho.MQTT.Message('{"command": "frame"}');
-                message.destinationName = "pycam/control/wc1";
+            function wakeUp() {
+                message = new Paho.MQTT.Message('{"command": "wake_up"}');
+                message.destinationName = 'pycam/control/' + camId;
                 client.send(message);
             }
 
@@ -77,7 +85,7 @@
         <div>
 
             <div id='label'></div>
-            <img id='cam' src=''/>            
+            <img id='cam' src=''/>
             <button onclick='captureStill()'>Capture</button>
 
         </div>

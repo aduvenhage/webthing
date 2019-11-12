@@ -1,6 +1,7 @@
 import base64
 import time
 import json
+import logging
 
 from config import config
 from amqp import amqp
@@ -8,43 +9,68 @@ from cvcam import cv
 from stats import stats, stats_config
 
 
+# setup
+logging.basicConfig(format='%(asctime)s [%(levelname)s]: %(message)s', level=logging.INFO)
+
+
 def seconds2ns(secs):
     return int(secs * 10 ** 9)
 
 
 class App:
+    """
+    Camera App State
+    """
+
     # camera constants
     CAM_ID = config()['cam_id']
-    CAP_TOPIC_FRAME = "pycam.captures.%s.frame.jpeg" % (CAM_ID)
-    CAP_TOPIC_STILL = "pycam.captures.%s.still.jpeg" % (CAM_ID)
-    CMD_TOPIC = "pycam.control.%s" % (CAM_ID)
+
+    TOPIC_FRAME = "pycam.captures.%s.frame.jpeg" % (CAM_ID)
+    TOPIC_STILL = "pycam.captures.%s.still.jpeg" % (CAM_ID)
+    TOPIC_HEARTBEAT = "pycam.status.%s.heartbeat" % (CAM_ID)
+    TOPIC_CMD = "pycam.control.%s" % (CAM_ID)
+
     IDLE_FRAME_TIMEOUT_S = 4.0
     ACTIVE_FRAME_TIMEOUT_S = 0.2
-    ACTIVE_STATE_TIMEOUT_S = 5.0
+    HEALTH_CHECK_TIMEOUT_S = 5.0
+    CMD_LOOP_TIMEOUT = ACTIVE_FRAME_TIMEOUT_S / 2
+
     IDLE_FRAME_TIMEOUT_NS = seconds2ns(IDLE_FRAME_TIMEOUT_S)
     ACTIVE_FRAME_TIMEOUT_NS = seconds2ns(ACTIVE_FRAME_TIMEOUT_S)
-    ACTIVE_STATE_TIMEOUT_NS = seconds2ns(ACTIVE_STATE_TIMEOUT_S)
-    CMD_LOOP_TIMEOUT = ACTIVE_FRAME_TIMEOUT_S / 2
+    HEALTH_CHECK_TIMEOUT_NS = seconds2ns(HEALTH_CHECK_TIMEOUT_S)
 
     # camera state
     cam = cv
     td_frame = IDLE_FRAME_TIMEOUT_NS
+    td_healt = IDLE_FRAME_TIMEOUT_NS
     ts_next_frame = 0
+    ts_next_healthcheck = 0
     ts_stop_active_state = 0
+    state = ''
 
     @classmethod
-    def wake_up(cls):
-        cls.td_frame = cls.ACTIVE_FRAME_TIMEOUT_NS
-        cls.ts_stop_active_state = time.time_ns() + cls.ACTIVE_STATE_TIMEOUT_NS
+    def wake_up(cls, ts):
+        """
+        Reset idle/sleep timer and wake up if required.
+        """
+        if cls.state != 'wake':
+            logging.info('state - awake')
+            cls.td_frame = cls.ACTIVE_FRAME_TIMEOUT_NS
+            cls.state = 'wake'
+            cls.ts_next_frame = time.time_ns()
+
+        cls.ts_stop_active_state = time.time_ns() + cls.IDLE_FRAME_TIMEOUT_NS
 
     @classmethod
-    def sleep(cls):
-        cls.td_frame = cls.IDLE_FRAME_TIMEOUT_NS
-
-    @classmethod
-    def do_state(cls):
-        if time.time_ns() > cls.ts_stop_active_state:
-            cls.sleep()
+    def try_sleep(cls, ts):
+        """
+        Test idle/sleep timer and go to sleep if required
+        """
+        if cls.state != 'sleep':
+            if time.time_ns() > cls.ts_stop_active_state:
+                logging.info('state - asleep')
+                cls.td_frame = cls.IDLE_FRAME_TIMEOUT_NS
+                cls.state = 'sleep'
 
 
 def command_callback(ch, method, properties, body):
@@ -52,65 +78,90 @@ def command_callback(ch, method, properties, body):
     Camera command callback
     Command format:
         {
-            command: <string>,
-            client: <string>,
-            user: <string>
-            [optional command specific values]
+            ???
         }
     """
     try:
-        cmd_obj = json.loads(body)
-        print("cmd: %s" % (cmd_obj))
+        stats().incr('cam.cmd_count')
+        with stats().timer('cam.cmd_times'):
+            ts = time.time_ns()
+            cmd_obj = json.loads(body)
+            logging.info("cmd received: %s" % (cmd_obj))
 
-        if cmd_obj['command'] == 'wake_up':
-            App.wake_up()
+            if cmd_obj['command'] == 'wake_up':
+                App.wake_up(ts)
 
-        elif cmd_obj['command'] == 'capture':
-            readAndPublishStill()
+            elif cmd_obj['command'] == 'capture':
+                read_and_pub_still(ts)
 
     except Exception as e:
-        print("cmd error: %s" % str(e))
+        logging.exception("cmd error: %s" % str(e))
 
 
-def readAndPublishFrames():
+def try_read_and_pub_frame(ts):
     """
     Read a JPEG low-res frame from camera and publish on topic
     """
     if time.time_ns() > App.ts_next_frame:
-        stats().incr('frames')
-        with stats().timer('cv.read.frame'):
+        stats().incr('cam.frame_count')
+        with stats().timer('cam.frame_time'):
             encimg = App.cam().capture_jpeg_frame()
             imgblob = base64.b64encode(encimg)
-            amqp().publish(routing_key=App.CAP_TOPIC_FRAME, body=imgblob)
+            amqp().publish(routing_key=App.TOPIC_FRAME, body=imgblob)
 
         App.ts_next_frame = time.time_ns() + App.td_frame
 
 
-def readAndPublishStill():
+def read_and_pub_still(ts):
     """
     Read a JPEG high-res still from camera and publish on topic
     """
-    stats().incr('stills')
-    encimg = cam().capture_jpeg_still()
-    imgBlob = base64.b64encode(encimg)
-    amqp().publish(routing_key=App.CAP_TOPIC_STILL, body=imgBlob)
+    stats().incr('cam.still_count')
+    with stats().timer('cam.still_time'):
+        encimg = App.cam().capture_jpeg_still()
+        imgBlob = base64.b64encode(encimg)
+        amqp().publish(routing_key=App.TOPIC_STILL, body=imgBlob)
+
+
+def try_check_and_pub_health(ts):
+    """
+    Check health and send out hearthbeat.
+    """
+    if time.time_ns() > App.ts_next_healthcheck:
+        stats().incr('cam.heartbeat_count')
+        with stats().timer('cam.heartbeat_time'):
+
+            status = {
+                'name': App.CAM_ID,
+                'frame_timeout': App.td_frame
+            }
+
+            amqp().publish(routing_key=App.TOPIC_HEARTBEAT, body=json.dumps(status))
+
+        App.ts_next_healthcheck = time.time_ns() + App.td_healt
 
 
 def main():
     # create camera command subscription
-    amqp().subscribe(channel_number=2, callback=command_callback, routing_key=App.CMD_TOPIC)
+    amqp().subscribe(channel_number=2, callback=command_callback, routing_key=App.TOPIC_CMD)
 
     # main loop
     while True:
         # read from AMQP (callback will be called on data events)
-        with stats().timer('amqp.read.events'):
+        with stats().timer('cam.data_proc_time'):
             amqp().process_data_events(App.CMD_LOOP_TIMEOUT)
 
+        ts = time.time_ns()
+
         # read from camera
-        readAndPublishFrames()
+        try_read_and_pub_frame(ts)
+
+        # check health and send out hearthbeat
+        try_check_and_pub_health(ts)
 
         # state checks
-        App.do_state()
+        App.try_sleep(ts)
+
 
 if __name__ == "__main__":
     main()
