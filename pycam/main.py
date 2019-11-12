@@ -42,7 +42,7 @@ class App:
     # camera state
     cam = cv
     td_frame = IDLE_FRAME_TIMEOUT_NS
-    td_healt = IDLE_FRAME_TIMEOUT_NS
+    td_health = IDLE_FRAME_TIMEOUT_NS
     ts_next_frame = 0
     ts_next_healthcheck = 0
     ts_stop_active_state = 0
@@ -57,9 +57,9 @@ class App:
             logging.info('state - awake')
             cls.td_frame = cls.ACTIVE_FRAME_TIMEOUT_NS
             cls.state = 'wake'
-            cls.ts_next_frame = time.time_ns()
+            cls.ts_next_frame = ts
 
-        cls.ts_stop_active_state = time.time_ns() + cls.IDLE_FRAME_TIMEOUT_NS
+        cls.ts_stop_active_state = ts + cls.IDLE_FRAME_TIMEOUT_NS
 
     @classmethod
     def try_sleep(cls, ts):
@@ -67,7 +67,7 @@ class App:
         Test idle/sleep timer and go to sleep if required
         """
         if cls.state != 'sleep':
-            if time.time_ns() > cls.ts_stop_active_state:
+            if ts > cls.ts_stop_active_state:
                 logging.info('state - asleep')
                 cls.td_frame = cls.IDLE_FRAME_TIMEOUT_NS
                 cls.state = 'sleep'
@@ -102,14 +102,16 @@ def try_read_and_pub_frame(ts):
     """
     Read a JPEG low-res frame from camera and publish on topic
     """
-    if time.time_ns() > App.ts_next_frame:
+    if ts > App.ts_next_frame:
         stats().incr('cam.frame_count')
         with stats().timer('cam.frame_time'):
+
+            # NOTE: using base 64 encoding to be compatible with JS front-end
             encimg = App.cam().capture_jpeg_frame()
             imgblob = base64.b64encode(encimg)
-            amqp().publish(routing_key=App.TOPIC_FRAME, body=imgblob)
+            amqp().publish(routing_key=App.TOPIC_FRAME, body=imgblob, content_type='image/jpeg')
 
-        App.ts_next_frame = time.time_ns() + App.td_frame
+        App.ts_next_frame = ts + App.td_frame
 
 
 def read_and_pub_still(ts):
@@ -118,27 +120,31 @@ def read_and_pub_still(ts):
     """
     stats().incr('cam.still_count')
     with stats().timer('cam.still_time'):
+
+        # NOTE: using base 64 encoding to be compatible with JS front-end
         encimg = App.cam().capture_jpeg_still()
         imgBlob = base64.b64encode(encimg)
-        amqp().publish(routing_key=App.TOPIC_STILL, body=imgBlob)
+        amqp().publish(routing_key=App.TOPIC_STILL, body=imgBlob, content_type='image/jpeg')
 
 
 def try_check_and_pub_health(ts):
     """
     Check health and send out hearthbeat.
     """
-    if time.time_ns() > App.ts_next_healthcheck:
+    if ts > App.ts_next_healthcheck:
         stats().incr('cam.heartbeat_count')
         with stats().timer('cam.heartbeat_time'):
 
             status = {
                 'name': App.CAM_ID,
-                'frame_timeout': App.td_frame
+                'frame_timeout': App.td_frame,
+                'topic_still': App.TOPIC_STILL,
+                'topic_frame': App.TOPIC_FRAME
             }
 
-            amqp().publish(routing_key=App.TOPIC_HEARTBEAT, body=json.dumps(status))
+            amqp().publish(routing_key=App.TOPIC_HEARTBEAT, body=json.dumps(status), content_type='application/json')
 
-        App.ts_next_healthcheck = time.time_ns() + App.td_healt
+        App.ts_next_healthcheck = ts + App.td_health
 
 
 def main():

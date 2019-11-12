@@ -1,0 +1,13 @@
+# custom base image (see deployment/base_nginx/Dockerfile)
+FROM aduvenhage/nginx-base
+
+ENV DEBIAN_FRONTEND noninteractive
+ENV DEBCONF_NONINTERACTIVE_SEEN true
+USER root
+
+# move required files
+COPY ./deployment/nginx/nginx.conf /etc/nginx/nginx.conf
+COPY ./deployment/nginx/nginx.sh /nginx.sh
+
+
+

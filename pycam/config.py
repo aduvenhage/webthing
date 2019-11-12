@@ -38,4 +38,3 @@ def amqp_config():
 def stats_config():
     return __stats_config
 
-

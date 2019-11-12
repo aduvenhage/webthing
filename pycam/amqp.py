@@ -48,7 +48,7 @@ class Amqp:
                 self.__amqp_channels[channel_number] = channel
                 return channel
 
-    def subscribe(self, channel_number=None, callback=None, routing_key=None):
+    def subscribe(self, callback, routing_key, channel_number=None):
         """
         Create queue, bind it and start consuming
         """
@@ -69,12 +69,17 @@ class Amqp:
         except Exception:
             pass
 
-    def publish(self, routing_key=None, body=None):
+    def publish(self, routing_key, body, content_type):
         """
         Publish new data.
         Always uses channel 1
         """
-        amqp().channel().basic_publish(exchange=self.__exchange, routing_key=routing_key, body=body)
+        amqp().channel().basic_publish(exchange=self.__exchange,
+                                       routing_key=routing_key,
+                                       body=body,
+                                       properties=pika.BasicProperties(
+                                            content_type='application/json'
+                                       ))
 
 
 __amqp = None

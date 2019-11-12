@@ -22,7 +22,12 @@
             // connect to broker
             function connect() {
                 console.log('connecting...')
-                client.connect({onSuccess:onConnect});
+                client.connect({
+                    onSuccess:onConnect,
+                    userName:"guest",
+                    password:"guest",
+                    useSSL: false
+                });
             }
 
             // called when the client connects
@@ -58,10 +63,13 @@
 
             // called when a message arrives
             function onMessageArrived(message) {
-                //console.log("onMessageArrived: " + message.payloadString);
-                //document.getElementById('cam').src = 'data:image/png;base64,' + message.payloadString;
-                console.log(message)
-                document.getElementById('label').innerHTML = message.payloadString.length;
+                if (message.destinationName.includes('pycam/status/')) {
+                    document.getElementById('label').innerHTML = 'status: ' + message.payloadString.length;
+                }
+                else if (message.destinationName.includes('pycam/captures/')) {
+                    document.getElementById('label').innerHTML = 'capture: ' + message.payloadString.length;
+                    //document.getElementById('cam').src = 'data:image/png;base64,' + message.payloadString;                
+                }
             }
 
             function captureStill() {

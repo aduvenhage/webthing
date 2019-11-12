@@ -1,0 +1,65 @@
+version: "3"
+
+# NOTE: .env variables are available to this file at build time
+# NOTE: .env variables are made available to containers at runtime (through 'env_file' option)
+# NOTE: build time container variables must be explicitly passed to the container using the 'args' option
+
+services:
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    env_file: ./.env
+    ports:
+      - 3000:3000
+    networks:
+      - grafana-net
+    volumes:
+      - grafana-volume
+    restart: always
+
+  graphite:
+    image: graphiteapp/graphite-statsd
+    container_name: graphite
+    env_file: ./.env
+    ports:
+      - 8125:8125/udp
+      - 8888:80
+    networks:
+      - grafana-net
+    restart: always
+
+  rabbitmq:
+    build:
+      context: .
+      dockerfile: ./deployment/rabbitmq/Dockerfile 
+    env_file: ./.env
+    ports:
+      - 5672:5672
+      - 8080:15672
+      - 8081:15675
+       
+    restart: always
+
+  nginx:  
+    build:
+      context: .
+      dockerfile: ./deployment/nginx/Dockerfile 
+    env_file: ./.env
+    ports:
+      - "${APP_PORT_HTTP}:80"
+      - "${APP_PORT_HTTPS}:443"
+    links:
+      - rabbitmq
+      - grafana
+
+    command:
+      sh /nginx.sh
+    restart: always
+
+networks:
+  grafana-net:
+
+volumes:
+  grafana-volume:
+    external: true
+
