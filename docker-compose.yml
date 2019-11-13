@@ -9,8 +9,6 @@ services:
     image: grafana/grafana
     container_name: grafana
     env_file: ./.env
-#    ports:
-#      - 3000:3000
     volumes:
       - grafana-volume
     restart: always
@@ -19,9 +17,9 @@ services:
     image: graphiteapp/graphite-statsd
     container_name: graphite
     env_file: ./.env
-#    ports:
-#      - 8125:8125/udp
-#      - 8888:80
+    ports:
+      - 8125:8125/udp
+      - 8888:80
     restart: always
 
   rabbitmq:
@@ -29,10 +27,6 @@ services:
       context: .
       dockerfile: ./deployment/rabbitmq/Dockerfile 
     env_file: ./.env
-#    ports:
-#      - 5672:5672
-#      - 8080:15672
-#      - 8081:15675
     restart: always
 
   nginx:  
@@ -43,6 +37,7 @@ services:
     ports:
       - "${APP_PORT_HTTP}:80"
       - "${APP_PORT_HTTPS}:443"
+      - 5672:5672
     links:
       - rabbitmq
       - grafana

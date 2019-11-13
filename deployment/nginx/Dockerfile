@@ -1,5 +1,5 @@
 # custom base image (see deployment/base_nginx/Dockerfile)
-FROM aduvenhage/nginx-base
+FROM arnoduvenhage/nginx-base
 
 ENV DEBIAN_FRONTEND noninteractive
 ENV DEBCONF_NONINTERACTIVE_SEEN true
