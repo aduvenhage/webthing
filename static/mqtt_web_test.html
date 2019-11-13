@@ -10,7 +10,7 @@
 
             window.onload = function() {
                 // Create a client instance
-                client = new Paho.MQTT.Client('localhost', 8081, "/ws", "clientId");
+                client = new Paho.MQTT.Client('rabbitws.localhost', 80, "/ws", "clientId");
 
                 // set callback handlers
                 client.onConnectionLost = onConnectionLost;
@@ -24,6 +24,7 @@
                 console.log('connecting...')
                 client.connect({
                     onSuccess:onConnect,
+                    onFailure:onConnectionLost,
                     userName:"guest",
                     password:"guest",
                     useSSL: false

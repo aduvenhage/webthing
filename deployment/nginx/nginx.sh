@@ -12,7 +12,7 @@ ls
 
 # wait for services to start
 echo Waiting on other services ...
-sleep 20s
+sleep 10s
 
 # create HTTPS certificate and port 80 redirect
 certbot --nginx --non-interactive --agree-tos --redirect -m $APP_EMAIL --domains $APP_DOMAIN
