@@ -9,8 +9,6 @@ services:
     image: grafana/grafana
     container_name: grafana
     env_file: ./.env
-    volumes:
-      - grafana-volume
     restart: always
 
   graphite:
@@ -42,12 +40,11 @@ services:
       - rabbitmq
       - grafana
     volumes:
-      - ./letsencrypt:/etc/letsencrypt/live
+      - letsencrypt-storage:/etc/letsencrypt/live
     command:
       sh /nginx.sh
     restart: always
 
 volumes:
-  grafana-volume:
+  letsencrypt-storage:
     external: true
-
