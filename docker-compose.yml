@@ -39,12 +39,6 @@ services:
     links:
       - rabbitmq
       - grafana
-    volumes:
-      - letsencrypt-storage:/etc/letsencrypt/live
     command:
       sh /nginx.sh
     restart: always
-
-volumes:
-  letsencrypt-storage:
-    external: true
