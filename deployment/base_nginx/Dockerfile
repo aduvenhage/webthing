@@ -11,7 +11,7 @@ FROM nginx:1
 ENV DEBIAN_FRONTEND noninteractive
 ENV DEBCONF_NONINTERACTIVE_SEEN true
 
-# build nginx
+# fetch dependencies
 RUN apt-get update &&\
     apt-get -y upgrade &&\
     apt-get install -y build-essential git tree wget software-properties-common &&\
@@ -20,11 +20,10 @@ RUN apt-get update &&\
     wget https://ftp.pcre.org/pub/pcre/pcre-8.42.tar.gz && tar xzvf pcre-8.42.tar.gz &&\
     wget https://www.zlib.net/zlib-1.2.11.tar.gz && tar xzvf zlib-1.2.11.tar.gz &&\
     wget https://www.openssl.org/source/openssl-1.1.0h.tar.gz && tar xzvf openssl-1.1.0h.tar.gz &&\
-    #add-apt-repository -y ppa:maxmind/ppa &&\
-    apt-get update && \
-    apt-get -y upgrade && \
-    apt-get install -y perl libperl-dev libgd3 libgd-dev libgeoip1 libgeoip-dev geoip-bin libxml2 libxml2-dev libxslt1.1 libxslt1-dev
+    apt-get install -y perl libperl-dev libgd3 libgd-dev libgeoip1 libgeoip-dev geoip-bin libxml2 libxml2-dev libxslt1.1 libxslt1-dev &&\
+    rm -rf /var/lib/apt/lists/*
 
+# build nginx
 RUN cd nginx-1.17.5 &&\
     ./configure --prefix=/etc/nginx \ 
             --sbin-path=/usr/sbin/nginx \ 
@@ -83,22 +82,23 @@ RUN cd nginx-1.17.5 &&\
             --with-openssl=../openssl-1.1.0h \
             --with-openssl-opt=no-nextprotoneg \
             --with-debug &&\
-    make &&\
+    make -j4 &&\
     make install
+
+# cleanup    
+RUN cd .. &&\
+    rm -r nginx-1.17.5
 
 # install Certbot
 RUN echo "deb http://deb.debian.org/debian stretch-backports main" | tee -a /etc/apt/sources.list &&\
     apt-get update &&\
     apt-get -y upgrade &&\
-    apt-get -y install certbot python-certbot-nginx -t stretch-backports
+    apt-get -y install certbot python-certbot-nginx -t stretch-backports &&\
+    rm -rf /var/lib/apt/lists/*
 
+# check nginx and setup modules
 RUN cd ~ &&\
     ln -s /usr/lib/nginx/modules /etc/nginx/modules &&\
     nginx -V &&\
-    #adduser --system --home /nonexistent --shell /bin/false --no-create-home --disabled-login --disabled-password --gecos "nginx user" --group nginx &&\
-    #mkdir -p /var/cache/nginx/client_temp /var/cache/nginx/fastcgi_temp /var/cache/nginx/proxy_t &&\
-    #emp /var/cache/nginx/scgi_temp /var/cache/nginx/uwsgi_temp &&\
-    #chmod 700 /var/cache/nginx/* &&\
-    #chown nginx:root /var/cache/nginx/* &&\
     nginx -t
 
