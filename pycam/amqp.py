@@ -1,9 +1,10 @@
 import pika
+import ssl
 from config import amqp_config
 
 
 class Amqp:
-    def __init__(self, host='localhost', port=5672,
+    def __init__(self, host='localhost', port=5672, use_ssl=False,
                  user='guest', password='guest',
                  virtual_host='/', exchange='amq.topic'):
         """
@@ -18,10 +19,24 @@ class Amqp:
         self.__amqp_channels = {}
 
         credentials = pika.PlainCredentials(self.__user, self.__passw)
-        parameters = pika.ConnectionParameters(host=self.__host,
-                                               port=self.__port,
-                                               virtual_host=self.__vhost,
-                                               credentials=credentials)
+
+        if use_ssl:
+            # enable SSL (server side cert)
+            ctx = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+            ssl_options = pika.SSLOptions(context=ctx, server_hostname=host)
+
+            parameters = pika.ConnectionParameters(host=self.__host,
+                                                   port=self.__port,
+                                                   virtual_host=self.__vhost,
+                                                   credentials=credentials,
+                                                   ssl_options=ssl_options)
+
+        else:
+            # plain TCP
+            parameters = pika.ConnectionParameters(host=self.__host,
+                                                   port=self.__port,
+                                                   virtual_host=self.__vhost,
+                                                   credentials=credentials)
 
         self.__amqp_connection = pika.BlockingConnection(parameters)
 
@@ -94,6 +109,7 @@ def amqp():
     if not __amqp:
         __amqp = Amqp(host=amqp_config()['host'],
                       port=amqp_config()['port'],
+                      use_ssl=amqp_config()['ssl'],
                       user=amqp_config()['username'],
                       password=amqp_config()['password'],
                       virtual_host=amqp_config()['virtual_host'],

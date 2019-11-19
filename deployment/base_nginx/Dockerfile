@@ -14,8 +14,7 @@ ENV DEBCONF_NONINTERACTIVE_SEEN true
 # fetch dependencies
 RUN apt-get update &&\
     apt-get -y upgrade &&\
-    apt-get install -y build-essential git tree wget software-properties-common &&\
-    apt-get -y update &&\
+    apt-get install -y build-essential git tree wget &&\
     wget https://nginx.org/download/nginx-1.17.5.tar.gz && tar zxvf nginx-1.17.5.tar.gz &&\
     wget https://ftp.pcre.org/pub/pcre/pcre-8.42.tar.gz && tar xzvf pcre-8.42.tar.gz &&\
     wget https://www.zlib.net/zlib-1.2.11.tar.gz && tar xzvf zlib-1.2.11.tar.gz &&\

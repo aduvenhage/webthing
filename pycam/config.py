@@ -12,9 +12,10 @@ __amqp_config = {
     'exchange': 'amq.topic',
     'username': 'guest',
     'password': 'guest',
-    'host': 'localhost',
-    'port': 5672,
-    'virtual_host': '/'
+    'host': 'mysmarthome.co.za',
+    'port': 5673,
+    'virtual_host': '/',
+    'ssl': True
 }
 
 __stats_config = {
