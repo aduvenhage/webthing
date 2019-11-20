@@ -1,21 +1,8 @@
 
 
-## Docker
-
 # Docker
 The `docker-compose.yaml` and `.env` files are in the source folder root.  Container images are built on base images (uploaded to dockerhub), to make deployment as quick as possible.  Containers communicate using docker network names.
 `.env` file is used for both build time and runtime variables.
-
-### RabbitMQ
-- `docker build deployment/ -t rabbitmq-web`
-- `docker run -d --hostname my-rabbit --name some-rabbit -p 5672:5672 -p 8080:15672 -p 8081:15675 rabbitmq-web`
-
-### Commands
-- list all containers: `docker ps`
-- exec into container: `docker exec -ti CONRAINER_ID bash`
-- kill all containers: `docker kill $(docker ps -q)`
-- delete all stopped containers: `docker rm $(docker ps -a -q)`
-- delete all images: `docker rmi $(docker images -q)`
 
 ### Install docker-compose (Linux / Ubuntu / Cloud VM)
 Locally
@@ -39,6 +26,13 @@ Install docker-machine: https://docs.docker.com/machine/install-machine/
   base=https://github.com/docker/machine/releases/download/v0.16.0 && curl -L $base/docker-machine-$(uname -s)-$(uname -m) >/tmp/docker-machine && sudo mv /tmp/docker-machine /usr/local/bin/docker-machine && chmod +x /usr/local/bin/docker-machine
   ```
 
+### Docker Commands
+- list all containers: `docker ps`
+- exec into container: `docker exec -ti CONRAINER_ID bash`
+- kill all containers: `docker kill $(docker ps -q)`
+- delete all stopped containers: `docker rm $(docker ps -a -q)`
+- delete all images: `docker rmi $(docker images -q)`
+
 ### Docker machine commands
 - create VM (ubuntu 18.04 LTS -- Digital Ocean): 
   ```
@@ -55,9 +49,6 @@ Install docker-machine: https://docs.docker.com/machine/install-machine/
 - NOTE: Digital Ocean VMs have to be in the same data center (in this case sfo2) as their floating IPs
 
 
-### Grafana
-From `grafana` folder:
-
-- `docker volume create --name=grafana-volume`
-- `docker-compose up -d`
-
+### Exec into Containers
+- **Prometheus**: docker-compose exec prometheus /bin/sh
+- **RabbitMQ**: docker-compose exec rabbitmq bash
