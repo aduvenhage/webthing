@@ -23,7 +23,7 @@ certbot --nginx --non-interactive --agree-tos --redirect -m $APP_EMAIL --domains
 echo "include /etc/nginx/amqp_stream.conf;" >> /etc/nginx/nginx.conf
 service nginx restart
 
-# nginx should auto start, so just wait
+# just wait
 sleep infinity
 
 exit 1

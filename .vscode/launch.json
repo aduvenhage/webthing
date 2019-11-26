@@ -5,6 +5,25 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Python: Flask",
+            "type": "python",
+            "request": "launch",
+            "module": "flask",
+            "env": {
+                "FLASK_APP": "${workspaceFolder}/flaskapp/app.py",
+                "FLASK_ENV": "development",
+                "FLASK_DEBUG": "0"
+            },
+            "args": [
+                "run",
+                "--no-debugger",
+                "--no-reload",
+                "--host=0.0.0.0",
+                "--port=5000"
+            ],
+            "jinja": true
+        },
+        {
             "name": "Python: PyCam",
             "type": "python",
             "request": "launch",

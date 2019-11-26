@@ -40,6 +40,20 @@ services:
     env_file: ./.env
     restart: always
 
+  server:  
+    build:
+      context: .
+      args:
+        SRC_DEPLOY_PATH: ${SRC_DEPLOY_PATH}
+      dockerfile: ./deployment/server/Dockerfile 
+    env_file: ./.env
+    links:
+      - rabbitmq
+      - graphite
+    command:
+      sh /server.sh
+    restart: always
+
   nginx:  
     build:
       context: .

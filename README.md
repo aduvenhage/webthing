@@ -52,3 +52,7 @@ Install docker-machine: https://docs.docker.com/machine/install-machine/
 ### Exec into Containers
 - **Prometheus**: docker-compose exec prometheus /bin/sh
 - **RabbitMQ**: docker-compose exec rabbitmq bash
+
+
+# NOTES
+- RabbitMQ HTTP Auth: https://github.com/rabbitmq/rabbitmq-auth-backend-http/blob/v3.7.x/README.md

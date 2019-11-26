@@ -65,11 +65,18 @@
             // called when a message arrives
             function onMessageArrived(message) {
                 if (message.destinationName.includes('pycam/status/')) {
-                    document.getElementById('label').innerHTML = 'status: ' + message.payloadString.length;
+                    obj = JSON.parse(message.payloadString);
+                    document.getElementById('cam_id').innerHTML = obj.name;
                 }
                 else if (message.destinationName.includes('pycam/captures/')) {
-                    document.getElementById('label').innerHTML = 'capture: ' + message.payloadString.length;
-                    //document.getElementById('cam').src = 'data:image/png;base64,' + message.payloadString;                
+                    if (message.destinationName.includes('/frame/')) {
+                        document.getElementById('cam_txt').innerHTML = 'capture: ' + message.payloadString.length;
+                        //document.getElementById('cam_frm').src = 'data:image/png;base64,' + message.payloadString;                
+                    }
+                    else if (message.destinationName.includes('/still/')) {
+                        document.getElementById('cam_txt').innerHTML = 'still: ' + message.payloadString.length;
+                        //document.getElementById('cam_stl').src = 'data:image/png;base64,' + message.payloadString;                
+                    }
                 }
             }
 
@@ -93,9 +100,15 @@
 
         <div>
 
-            <div id='label'></div>
-            <img id='cam' src=''/>
-            <button onclick='captureStill()'>Capture</button>
+            <div id='cam_id'></div>
+            <img id='cam_frm' src=''/>
+            <div id='cam_txt'></div>
+            <div>
+                <button onclick='captureStill()'>Capture</button>
+            </div>
+            <div>
+                <img id='cam_stl' src=''/>
+            </div>
 
         </div>
 
