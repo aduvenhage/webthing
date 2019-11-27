@@ -1,6 +1,5 @@
 import pika
 import ssl
-from config import amqp_config
 
 
 class Amqp:
@@ -100,19 +99,19 @@ class Amqp:
 __amqp = None
 
 
-def amqp():
+def amqp(config=None):
     """
     Creates an AMQP client instance
     """
     global __amqp
 
     if not __amqp:
-        __amqp = Amqp(host=amqp_config()['host'],
-                      port=amqp_config()['port'],
-                      use_ssl=amqp_config()['ssl'],
-                      user=amqp_config()['username'],
-                      password=amqp_config()['password'],
-                      virtual_host=amqp_config()['virtual_host'],
-                      exchange=amqp_config()['exchange'])
+        __amqp = Amqp(host=config.AMQP_HOST,
+                      port=config.AMQP_PORT,
+                      use_ssl=config.AMQP_USE_SSL,
+                      user=config.AMQP_USERNAME,
+                      password=config.AMQP_PASSWORD,
+                      virtual_host=config.AMQP_VIRTUAL_HOST,
+                      exchange=config.AMQP_EXCHANGE)
 
     return __amqp

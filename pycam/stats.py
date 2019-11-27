@@ -1,15 +1,14 @@
 import statsd
-from config import stats_config
 
 
 __stats_client = None
 
 
-def stats():
+def stats(config=None):
     global __stats_client
 
     if not __stats_client:
-        __stats_client = statsd.StatsClient(stats_config()['host'],
-                                            stats_config()['port'])
+        __stats_client = statsd.StatsClient(config.STATS_HOST,
+                                            config.STATS_PORT)
 
     return __stats_client

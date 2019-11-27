@@ -28,7 +28,10 @@
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/pycam/main.py",
-            "console": "integratedTerminal"
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
         }
     ]
 }

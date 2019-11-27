@@ -3,10 +3,10 @@ import time
 import json
 import logging
 
-from config import config
+import config
 from amqp import amqp
 from cvcam import cv
-from stats import stats, stats_config
+from stats import stats
 
 
 # setup
@@ -23,26 +23,27 @@ class App:
     """
 
     # camera constants
-    CAM_ID = config()['cam_id']
+    config = config.get_config()
+    config.get('TOPIC_FRAME', "pycam.captures.%s.frame.jpeg" % (config.CAMERA_ID))
+    config.get('TOPIC_STILL', "pycam.captures.%s.still.jpeg" % (config.CAMERA_ID))
+    config.get('TOPIC_HEARTBEAT', "pycam.status.%s.heartbeat" % (config.CAMERA_ID))
+    config.get('TOPIC_CMD', "pycam.control.%s" % (config.CAMERA_ID))
 
-    TOPIC_FRAME = "pycam.captures.%s.frame.jpeg" % (CAM_ID)
-    TOPIC_STILL = "pycam.captures.%s.still.jpeg" % (CAM_ID)
-    TOPIC_HEARTBEAT = "pycam.status.%s.heartbeat" % (CAM_ID)
-    TOPIC_CMD = "pycam.control.%s" % (CAM_ID)
+    config.IDLE_FRAME_TIMEOUT_S = 4.0
+    config.ACTIVE_FRAME_TIMEOUT_S = 0.2
+    config.HEALTH_CHECK_TIMEOUT_S = 5.0
+    config.CMD_LOOP_TIMEOUT = config.ACTIVE_FRAME_TIMEOUT_S / 2
 
-    IDLE_FRAME_TIMEOUT_S = 4.0
-    ACTIVE_FRAME_TIMEOUT_S = 0.2
-    HEALTH_CHECK_TIMEOUT_S = 5.0
-    CMD_LOOP_TIMEOUT = ACTIVE_FRAME_TIMEOUT_S / 2
-
-    IDLE_FRAME_TIMEOUT_NS = seconds2ns(IDLE_FRAME_TIMEOUT_S)
-    ACTIVE_FRAME_TIMEOUT_NS = seconds2ns(ACTIVE_FRAME_TIMEOUT_S)
-    HEALTH_CHECK_TIMEOUT_NS = seconds2ns(HEALTH_CHECK_TIMEOUT_S)
+    config.IDLE_FRAME_TIMEOUT_NS = seconds2ns(config.IDLE_FRAME_TIMEOUT_S)
+    config.ACTIVE_FRAME_TIMEOUT_NS = seconds2ns(config.ACTIVE_FRAME_TIMEOUT_S)
+    config.HEALTH_CHECK_TIMEOUT_NS = seconds2ns(config.HEALTH_CHECK_TIMEOUT_S)
 
     # camera state
     cam = cv
-    td_frame = IDLE_FRAME_TIMEOUT_NS
-    td_health = IDLE_FRAME_TIMEOUT_NS
+    cam(config)
+
+    td_frame = config.IDLE_FRAME_TIMEOUT_NS
+    td_health = config.IDLE_FRAME_TIMEOUT_NS
     ts_next_frame = 0
     ts_next_healthcheck = 0
     ts_stop_active_state = 0
@@ -55,11 +56,11 @@ class App:
         """
         if cls.state != 'wake':
             logging.info('state - awake')
-            cls.td_frame = cls.ACTIVE_FRAME_TIMEOUT_NS
+            cls.td_frame = cls.config.ACTIVE_FRAME_TIMEOUT_NS
             cls.state = 'wake'
             cls.ts_next_frame = ts
 
-        cls.ts_stop_active_state = ts + cls.IDLE_FRAME_TIMEOUT_NS
+        cls.ts_stop_active_state = ts + cls.config.IDLE_FRAME_TIMEOUT_NS
 
     @classmethod
     def try_sleep(cls, ts):
@@ -69,7 +70,7 @@ class App:
         if cls.state != 'sleep':
             if ts > cls.ts_stop_active_state:
                 logging.info('state - asleep')
-                cls.td_frame = cls.IDLE_FRAME_TIMEOUT_NS
+                cls.td_frame = cls.config.IDLE_FRAME_TIMEOUT_NS
                 cls.state = 'sleep'
 
 
@@ -109,7 +110,7 @@ def try_read_and_pub_frame(ts):
             # NOTE: using base 64 encoding to be compatible with JS front-end
             encimg = App.cam().capture_jpeg_frame()
             imgblob = base64.b64encode(encimg)
-            amqp().publish(routing_key=App.TOPIC_FRAME, body=imgblob, content_type='image/jpeg')
+            amqp().publish(routing_key=App.config.TOPIC_FRAME, body=imgblob, content_type='image/jpeg')
 
         App.ts_next_frame = ts + App.td_frame
 
@@ -124,7 +125,7 @@ def read_and_pub_still(ts):
         # NOTE: using base 64 encoding to be compatible with JS front-end
         encimg = App.cam().capture_jpeg_still()
         imgBlob = base64.b64encode(encimg)
-        amqp().publish(routing_key=App.TOPIC_STILL, body=imgBlob, content_type='image/jpeg')
+        amqp().publish(routing_key=App.config.TOPIC_STILL, body=imgBlob, content_type='image/jpeg')
 
 
 def try_check_and_pub_health(ts):
@@ -136,26 +137,26 @@ def try_check_and_pub_health(ts):
         with stats().timer('cam.heartbeat_time'):
 
             status = {
-                'name': App.CAM_ID,
+                'name': App.config.CAMERA_ID,
                 'frame_timeout': App.td_frame,
-                'topic_still': App.TOPIC_STILL,
-                'topic_frame': App.TOPIC_FRAME
+                'topic_still': App.config.TOPIC_STILL,
+                'topic_frame': App.config.TOPIC_FRAME
             }
 
-            amqp().publish(routing_key=App.TOPIC_HEARTBEAT, body=json.dumps(status), content_type='application/json')
+            amqp().publish(routing_key=App.config.TOPIC_HEARTBEAT, body=json.dumps(status), content_type='application/json')
 
         App.ts_next_healthcheck = ts + App.td_health
 
 
 def main():
     # create camera command subscription
-    amqp().subscribe(channel_number=2, callback=command_callback, routing_key=App.TOPIC_CMD)
+    amqp(App.config).subscribe(channel_number=2, callback=command_callback, routing_key=App.config.TOPIC_CMD)
 
     # main loop
     while True:
         # read from AMQP (callback will be called on data events)
-        with stats().timer('cam.data_proc_time'):
-            amqp().process_data_events(App.CMD_LOOP_TIMEOUT)
+        with stats(App.config).timer('cam.data_proc_time'):
+            amqp().process_data_events(App.config.CMD_LOOP_TIMEOUT)
 
         ts = time.time_ns()
 
@@ -169,5 +170,5 @@ def main():
         App.try_sleep(ts)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
