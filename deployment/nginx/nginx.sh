@@ -18,9 +18,9 @@ sleep 10s
 certbot --nginx --non-interactive --agree-tos --redirect -m $APP_EMAIL --domains $APP_DOMAIN
 
 # complete config and restart
-# NOTE: nginx certbot does not modify stream blocks, so we have to manually create it on the domain and add it to the config
-#       (see amqp_stream.conf)
+# NOTE: nginx certbot does not modify stream blocks, so we have to manually add it to the config
 echo "include /etc/nginx/amqp_stream.conf;" >> /etc/nginx/nginx.conf
+#echo "include /etc/nginx/amqp_stream_nossl.conf;" >> /etc/nginx/nginx.conf
 service nginx restart
 
 # just wait

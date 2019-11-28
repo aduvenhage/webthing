@@ -14,6 +14,13 @@ services:
       - 8888:80
     restart: always
 
+  prometheus:
+    build:
+      context: .
+      dockerfile: ./deployment/prometheus/Dockerfile 
+    env_file: ./.env
+    restart: always
+    
   grafana:
     build:
       context: .
@@ -22,15 +29,6 @@ services:
     links:
       - prometheus
       - graphite
-    restart: always
-    
-  prometheus:
-    build:
-      context: .
-      dockerfile: ./deployment/prometheus/Dockerfile 
-    env_file: ./.env
-    links:
-      - rabbitmq
     restart: always
     
   rabbitmq:
@@ -63,7 +61,6 @@ services:
       - "${APP_PORT_HTTP}:80"
       - "${APP_PORT_HTTPS}:443"
       - 5672:5672
-      - 5673:5673
     links:
       - rabbitmq
       - grafana

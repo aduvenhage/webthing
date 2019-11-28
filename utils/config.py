@@ -31,7 +31,7 @@ class Config():
         self.get('VIDEO_WIDTH', 320)
         self.get('AMQP_EXCHANGE', 'amq.topic')
         self.get('AMQP_HOST', 'localhost')
-        self.get('AMQP_PORT', 5673)
+        self.get('AMQP_PORT', 5672)
         self.get('AMQP_VIRTUAL_HOST', '/')
         self.get('AMQP_USE_SSL', True)
         self.get('AMQP_USERNAME', 'guest')

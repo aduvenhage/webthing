@@ -5,12 +5,12 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.js" type="text/javascript"></script>
 
         <script>
-            var camId = 'cam1';
+            var camId = 'CAM0';
             var camWakeTimer = null;
 
             window.onload = function() {
                 // Create a client instance
-                client = new Paho.MQTT.Client('rabbitws.mysmarthome.co.za', 443, "/ws", "clientId");
+                client = new Paho.MQTT.Client('rabbitws.localhost', 80, "/ws", "clientId");
 
                 // set callback handlers
                 client.onConnectionLost = onConnectionLost;
@@ -27,7 +27,7 @@
                     onFailure:onConnectionLost,
                     userName:"guest",
                     password:"guest",
-                    useSSL: true
+                    useSSL: false
                 });
             }
 

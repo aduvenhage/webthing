@@ -15,9 +15,12 @@ echo Waiting on other services ...
 sleep 5s
 
 # run server (TODO: run through gunicorn)
-cd $SRC_DEPLOY_PATH/flaskapp
+cd $SRC_DEPLOY_PATH
 
-export FLASK_APP=main.py
+export FLASK_APP=flaskapp/app.py
+export FLASK_ENV=development
+export FLASK_DEBUG=1
+
 flask run --host=0.0.0.0 --port=5000
 
 # just wait
