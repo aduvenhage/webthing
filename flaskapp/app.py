@@ -1,4 +1,4 @@
-import config
+from utils import config
 from . import create_app
 
 

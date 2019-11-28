@@ -3,10 +3,11 @@ import time
 import json
 import logging
 
-import config
-from amqp import amqp
-from cvcam import cv
-from stats import stats
+from utils import config
+from utils.amqp import amqp
+from utils.cvcam import cv
+from utils.stats import stats
+
 
 
 # setup

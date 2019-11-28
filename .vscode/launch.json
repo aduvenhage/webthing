@@ -12,7 +12,8 @@
             "env": {
                 "FLASK_APP": "${workspaceFolder}/flaskapp/app.py",
                 "FLASK_ENV": "development",
-                "FLASK_DEBUG": "0"
+                "FLASK_DEBUG": "1",
+                "DEBUG": "True"
             },
             "args": [
                 "run",
@@ -21,17 +22,20 @@
                 "--host=0.0.0.0",
                 "--port=5000"
             ],
-            "jinja": true
+            "jinja": true,
+            "cwd": "${workspaceFolder}"
         },
         {
             "name": "Python: PyCam",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/pycam/main.py",
+            "program": "${workspaceFolder}/pycam/app.py",
             "console": "integratedTerminal",
             "env": {
-                "PYTHONPATH": "${workspaceFolder}"
-            }
+                "PYTHONPATH": "${workspaceFolder}",
+                "DEBUG": "True"
+            },
+            "cwd": "${workspaceFolder}"
         }
     ]
 }

@@ -1,4 +1,5 @@
 import os
+import dotenv
 
 
 class Config():
@@ -13,16 +14,23 @@ class Config():
     """
 
     def __init__(self):
-        """
-        Setup some config attributes to start with.
-        """
+
         self.config = {}
+
+        # load base environment
+        self.base_dir = os.path.dirname(os.path.abspath(__file__))
+        self.debug = self.get('DEBUG', False)
+
+        if self.debug:
+            dotenv.load_dotenv('debug.env', override=True)
+
+        # setup some config attributes to start with.
         self.get('CAMERA_ID', 'CAM0')
         self.get('CAMERA_URL', 0)
         self.get('JPEG_QUALITY', 90)
         self.get('VIDEO_WIDTH', 320)
         self.get('AMQP_EXCHANGE', 'amq.topic')
-        self.get('AMQP_HOST', 'mysmarthome.co.za')
+        self.get('AMQP_HOST', 'localhost')
         self.get('AMQP_PORT', 5673)
         self.get('AMQP_VIRTUAL_HOST', '/')
         self.get('AMQP_USE_SSL', True)
@@ -33,19 +41,24 @@ class Config():
 
     def get(self, key, default):
         """
-        Try to find value from environment or use default.
+        Try to find value from environment or use default. Also casts value to the type of the supplied default.
         """
         if key in self.config:
             return self.config[key]
 
         else:
-            value = type(default)(os.getenv(key, str(default)))
+            value = os.getenv(key, str(default))
+            if isinstance(default, bool):
+                value = value in ['True', 'TRUE', 'true']
+            else:
+                value = type(default)(value)
+
             self.config[key] = value
             return value
 
     def __getattr__(self, name):
         """
-        Returns value from config dict if name not an attribute of config object.
+        Returns value from config dict if name is not an attribute of config object.
         """
         if name in self.config:
             return self.config[name]
