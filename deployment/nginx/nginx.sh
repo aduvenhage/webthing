@@ -16,6 +16,7 @@ sleep 10s
 
 # create HTTPS certificate and port 80 redirects
 certbot --nginx --non-interactive --agree-tos --redirect -m $APP_EMAIL --domains $APP_DOMAIN
+printenv
 
 # complete config and restart
 # NOTE: nginx certbot does not modify stream blocks, so we have to manually add it to the config

@@ -3,7 +3,7 @@ import time
 import json
 import logging
 
-from utils import config
+from utils.config import get_config
 from utils.amqp import amqp
 from utils.cvcam import cv
 from utils.stats import stats
@@ -24,7 +24,7 @@ class App:
     """
 
     # camera constants
-    config = config.get_config()
+    config = get_config()
     config.get('TOPIC_FRAME', "pycam.captures.%s.frame.jpeg" % (config.CAMERA_ID))
     config.get('TOPIC_STILL', "pycam.captures.%s.still.jpeg" % (config.CAMERA_ID))
     config.get('TOPIC_HEARTBEAT', "pycam.status.%s.heartbeat" % (config.CAMERA_ID))
