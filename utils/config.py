@@ -68,6 +68,12 @@ class Config():
         else:
             raise AttributeError('Unknown attribute %s' % (name))
 
+    def __dir__(self):
+        """
+        Built list of all object attributes.
+        """
+        return list(self.__dict__.keys()) + list(self.config.keys())
+
 
 __the_config = None
 

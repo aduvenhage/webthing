@@ -4,7 +4,9 @@ from logging.handlers import RotatingFileHandler
 
 from flask import Flask, current_app
 from flask_sqlalchemy import SQLAlchemy
+
 from flask_migrate import Migrate
+from flask_login import LoginManager
 
 from utils.config import get_config
 
@@ -24,6 +26,7 @@ def create_app():
     config = get_config()
     config.SQLALCHEMY_DATABASE_URI = config.DATABASE_URL
     config.SQLALCHEMY_TRACK_MODIFICATIONS = False
+    config.get('SECRET_KEY', 'VERY_BIG_SECRET')
 
     # create flask app
     app = Flask(__name__)
