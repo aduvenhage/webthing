@@ -3,14 +3,29 @@ import logging
 from logging.handlers import RotatingFileHandler
 
 from flask import Flask, current_app
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 
 from utils.config import get_config
 
 
+# globals
+db = SQLAlchemy()
+migrate = Migrate()
+login = LoginManager()
+
+
 def create_app():
+    """
+    Create flask application instance.
+    """
+
+    # get app config
+    config = get_config()
+    config.SQLALCHEMY_DATABASE_URI = config.DATABASE_URL
+    config.SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # create flask app
-    config = get_config()
     app = Flask(__name__)
     app.config.from_object(config)
 
@@ -26,6 +41,11 @@ def create_app():
     app.logger.setLevel(logging.DEBUG)
 
     app.logger.info('Webthing Startup')
+
+    # setup DB and auth
+    db.init_app(app)
+    migrate.init_app(app, db)
+    login.init_app(app)
 
     # register handlers/routes
     from .errors import bp as errors_bp

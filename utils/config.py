@@ -18,8 +18,9 @@ class Config():
         self.config = {}
 
         # load base environment
-        self.base_dir = os.path.dirname(os.path.abspath(__file__))
+        self.base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         self.debug = self.get('DEBUG', False)
+        self.default_db_url = 'sqlite:///' + os.path.join(self.base_dir, 'webthing.db')
 
         if self.debug:
             dotenv.load_dotenv('debug.env', override=True)
@@ -38,6 +39,7 @@ class Config():
         self.get('AMQP_PASSWORD', 'guest')
         self.get('STATS_HOST', 'localhost')
         self.get('STATS_PORT', 8125)
+        self.get('DATABASE_URL', self.default_db_url)
 
     def get(self, key, default):
         """
