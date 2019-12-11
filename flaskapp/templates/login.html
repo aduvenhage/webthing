@@ -15,4 +15,13 @@
         <p>{{ form.remember_me() }} {{ form.remember_me.label }}</p>
         <p>{{ form.submit() }}</p>
     </form>
+
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    {% for message in messages %}
+    <p><i><font color="red">{{ message }}</font></i></p>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+
 {% endblock %}

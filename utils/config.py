@@ -49,11 +49,14 @@ class Config():
             return self.config[key]
 
         else:
-            value = os.getenv(key, str(default))
-            if isinstance(default, bool):
-                value = value in ['True', 'TRUE', 'true']
+            if default is None:
+                value = os.getenv(key)
+
+            elif isinstance(default, bool):
+                value = os.getenv(key, str(default)) in ['True', 'TRUE', 'true']
+
             else:
-                value = type(default)(value)
+                value = type(default)(os.getenv(key, str(default)))
 
             self.config[key] = value
             return value

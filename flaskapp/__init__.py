@@ -26,7 +26,10 @@ def create_app():
     config = get_config()
     config.SQLALCHEMY_DATABASE_URI = config.DATABASE_URL
     config.SQLALCHEMY_TRACK_MODIFICATIONS = False
-    config.get('SECRET_KEY', 'VERY_BIG_SECRET')
+
+    config.get('SECRET_KEY', None)
+    if config.SECRET_KEY == None:
+        raise Exception('No value specified for SECRET_KEY')
 
     # create flask app
     app = Flask(__name__)
@@ -41,7 +44,11 @@ def create_app():
     file_handler.setLevel(logging.DEBUG)
 
     app.logger.addHandler(file_handler)
-    app.logger.setLevel(logging.DEBUG)
+
+    if config.DEBUG:
+        app.logger.setLevel(logging.DEBUG)
+    else:
+        app.logger.setLevel(logging.INFO)
 
     app.logger.info('Webthing Startup')
 

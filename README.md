@@ -1,6 +1,6 @@
 
 
-# Docker
+## Docker
 The `docker-compose.yaml` and `.env` files are in the source folder root.  Container images are built on base images (uploaded to dockerhub), to make deployment as quick as possible.  Containers communicate using docker network names.
 `.env` file is used for both build time and runtime variables.
 
@@ -54,5 +54,35 @@ Install docker-machine: https://docs.docker.com/machine/install-machine/
 - **RabbitMQ**: docker-compose exec rabbitmq bash
 
 
-# NOTES
+## Flask
+### DB setup and migrations
+
+Create tables:
+```
+flask db init
+flask db migrate
+flask db upgrade
+```
+
+### Manual interactions
+
+Add user:
+```
+from flaskapp.auth.models import User
+from flaskapp import create_app
+from flaskapp import db
+
+app = create_app()
+app.app_context().push()
+
+u = User(username='Arno', email='a.rno')
+u.set_password('123456')
+
+db.session.add(u)
+db.session.commit()
+
+```
+
+
+## NOTES
 - RabbitMQ HTTP Auth: https://github.com/rabbitmq/rabbitmq-auth-backend-http/blob/v3.7.x/README.md
