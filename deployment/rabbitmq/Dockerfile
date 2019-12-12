@@ -7,5 +7,5 @@ ARG DEBUG
 
 ADD ./deployment/rabbitmq/rabbitmq.conf /etc/rabbitmq/
 
-RUN rabbitmq-plugins enable --offline rabbitmq_mqtt rabbitmq_web_mqtt rabbitmq_prometheus rabbitmq_auth_backend_http &&\
+RUN rabbitmq-plugins enable --offline rabbitmq_mqtt rabbitmq_web_mqtt rabbitmq_prometheus rabbitmq_auth_backend_http rabbitmq_auth_backend_cache &&\
     rabbitmq-plugins list

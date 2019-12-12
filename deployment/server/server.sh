@@ -27,6 +27,7 @@ flask db migrate
 flask db upgrade
 
 # create user(s)
+export PYTHONPATH=$SRC_DEPLOY_PATH
 python utils/create_superuser.py
 
 # run app
