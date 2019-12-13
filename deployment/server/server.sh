@@ -14,17 +14,14 @@ ls
 echo Waiting on other services ...
 sleep 5s
 
-# run server (TODO: run through gunicorn)
-cd $SRC_DEPLOY_PATH
+# create DB
+sh create_db.sh
 
+# setup env
+cd $SRC_DEPLOY_PATH
 export FLASK_APP=flaskapp/app.py
 export FLASK_ENV=development
 export FLASK_DEBUG=1
-
-# init DB
-flask db init
-flask db migrate
-flask db upgrade
 
 # create user(s)
 export PYTHONPATH=$SRC_DEPLOY_PATH

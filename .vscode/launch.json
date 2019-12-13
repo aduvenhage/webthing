@@ -36,6 +36,24 @@
                 "DEBUG": "True"
             },
             "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "Python: Create Superuser",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/utils/create_superuser.py",
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}",
+                "DEBUG": "True"
+            },
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "label": "create_db",
+            "command": "${workspaceFolder}/deployment/server/create_db.sh",
+            "args": [],
+            "type": "shell"
         }
     ]
 }
