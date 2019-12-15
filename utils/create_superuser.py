@@ -16,14 +16,10 @@ def main():
     u = User(username='admin',
              email='aduvenhage@gmail.com',
              role='administrator',
-             routing_keys='admin.#,#.jpeg')
+             routing_keys='#')
 
     passw = os.getenv('APP_PASSWORD', 'admin')
     u.set_password(passw)
-
-    res = u.check_topics('admin2.cam1.jpeg')
-    res = u.check_topics('admin.cam2')
-    res = u.check_topics('admi.cam')
 
     # update db
     print('Updating to DB ...')

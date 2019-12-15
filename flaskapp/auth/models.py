@@ -34,13 +34,15 @@ class User(UserMixin, db.Model):
 
     def check_topics(self, topic):
         """
-        Match a single topic string against any user routing keys
+        Match a single topic string against any user routing keys.
+        topic: str: comma seperated routing keys
         """
         keys = self.routing_keys.split(',')
         if not keys:
             return False
 
         for key in keys:
+            key = key.lstrip().rstrip()
             if get_topic_match(key, topic):
                 return True
 
@@ -53,6 +55,6 @@ class User(UserMixin, db.Model):
 @login.user_loader
 def load_user(id):
     """
-    Utility function (used by flask_login) that helps load user object for session.
+    Utility function (used by flask_login) that helps load user object for HTTP session.
     """
     return User.query.get(int(id))
