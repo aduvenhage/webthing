@@ -38,10 +38,10 @@
             "cwd": "${workspaceFolder}"
         },
         {
-            "name": "Python: Create Superuser",
+            "name": "Python: Create Users",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/utils/create_superuser.py",
+            "program": "${workspaceFolder}/utils/create_users.py",
             "console": "integratedTerminal",
             "env": {
                 "PYTHONPATH": "${workspaceFolder}",
@@ -50,6 +50,8 @@
             "cwd": "${workspaceFolder}",
             "args": [
                 "--erase_all",
+                "--file",
+                "deployment/server/users.json"
             ]
         }
     ]

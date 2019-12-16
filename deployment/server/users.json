@@ -1,0 +1,14 @@
+[
+    {
+        "username": "user1",
+        "password": "passw1",
+        "role": "administrator",
+        "routing_keys": "user1.#"
+    },
+    {
+        "username": "user2",
+        "password": "passw2",
+        "role": "management",
+        "routing_keys": "user2.#"
+    }
+]

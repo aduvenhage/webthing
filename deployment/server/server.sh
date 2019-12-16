@@ -14,18 +14,20 @@ ls
 echo Waiting on other services ...
 sleep 5s
 
+# go to source folder
+cd $SRC_DEPLOY_PATH
+
 # create DB
-sh create_db.sh
+sh deployment/server/create_db.sh
 
 # setup env
-cd $SRC_DEPLOY_PATH
 export FLASK_APP=flaskapp/app.py
 export FLASK_ENV=development
 export FLASK_DEBUG=1
 
 # create user(s)
 export PYTHONPATH=$SRC_DEPLOY_PATH
-python utils/create_users.py
+python utils/create_users.py --file deployment/server/users.json
 
 # run app
 flask run --host=0.0.0.0 --port=5000
