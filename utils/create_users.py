@@ -1,17 +1,25 @@
 import os
-import re
+import click
 
 from flaskapp.auth.models import User
 from flaskapp import create_app
 from flaskapp import db
 
 
-def main():
+@click.command()
+@click.option('--erase_all', is_flag=True, required=False, help='Erase all users profiles.')
+@click.option('--file', default=None, type=str, help='User backup file (JSON).')
+def main(erase_all, file):
     # init flask app
     app = create_app()
     app.app_context().push()
 
-    # create user
+    # clean out DB
+    if erase_all:
+        User.query.delete()
+        db.session.commit()
+
+    # create default super user
     print('Creating superuser object ...')
     u = User(username='admin',
              email='aduvenhage@gmail.com',

@@ -47,13 +47,10 @@
                 "PYTHONPATH": "${workspaceFolder}",
                 "DEBUG": "True"
             },
-            "cwd": "${workspaceFolder}"
-        },
-        {
-            "label": "create_db",
-            "command": "${workspaceFolder}/deployment/server/create_db.sh",
-            "args": [],
-            "type": "shell"
+            "cwd": "${workspaceFolder}",
+            "args": [
+                "--erase_all",
+            ]
         }
     ]
 }

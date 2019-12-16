@@ -25,7 +25,7 @@ export FLASK_DEBUG=1
 
 # create user(s)
 export PYTHONPATH=$SRC_DEPLOY_PATH
-python utils/create_superuser.py
+python utils/create_users.py
 
 # run app
 flask run --host=0.0.0.0 --port=5000

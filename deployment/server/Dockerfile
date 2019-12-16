@@ -9,5 +9,5 @@ ARG SRC_DEPLOY_PATH
 COPY ./ ${SRC_DEPLOY_PATH}
 COPY ./deployment/server/server.sh /server.sh
 
-RUN pip install statsd flask python-dotenv flask-wtf flask-sqlalchemy flask-migrate flask-login flask-bootstrap
+RUN pip install -r ${SRC_DEPLOY_PATH}/deployment/server/requirements.txt
 
