@@ -1,4 +1,12 @@
-
+# Full Stack Rabbit Attack
+## General
+- RabbitMQ
+ - backend-to-frontend (using MQTT plugin)
+ - 
+- Grafana server stats
+ - RabbitMQ integratition
+ - Statsd integration
+ - Client side
 
 ## Docker
 The `docker-compose.yaml` and `.env` files are in the source folder root.  Container images are built on base images (uploaded to dockerhub), to make deployment as quick as possible.  Containers communicate using docker network names.
@@ -62,6 +70,29 @@ Create tables:
 flask db init
 flask db migrate
 flask db upgrade
+```
+
+### User setup
+- currently done at server container start
+- look at `deployment/server/server.sh`
+- `python utils/create_users.py --file deployment/server/users.json`
+
+User file format:
+```
+[
+    {
+        "username": "user1",
+        "password": "passw1",
+        "role": "administrator",
+        "routing_keys": "user1.#"
+    },
+    {
+        "username": "user2",
+        "password": "passw2",
+        "role": "management",
+        "routing_keys": "user2.#"
+    }
+]
 ```
 
 ### Manual interactions
