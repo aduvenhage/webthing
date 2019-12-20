@@ -1,6 +1,8 @@
 import pika
 import ssl
 
+from utils.config import get_config
+
 
 class Amqp:
     def __init__(self, host='localhost', port=5672, use_ssl=False,
@@ -99,13 +101,20 @@ class Amqp:
 __amqp = None
 
 
-def amqp(config=None):
+def amqp():
     """
     Creates an AMQP client instance
     """
     global __amqp
 
     if not __amqp:
+        config = get_config()
+        config.get('AMQP_EXCHANGE', 'amq.topic')
+        config.get('AMQP_HOST', 'localhost')
+        config.get('AMQP_PORT', 5672)
+        config.get('AMQP_VIRTUAL_HOST', '/')
+        config.get('AMQP_USE_SSL', False)
+
         __amqp = Amqp(host=config.AMQP_HOST,
                       port=config.AMQP_PORT,
                       use_ssl=config.AMQP_USE_SSL,

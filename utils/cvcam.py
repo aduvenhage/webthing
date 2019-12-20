@@ -1,5 +1,7 @@
 import cv2
 
+from utils.config import get_config
+
 
 class CvCapture:
     def __init__(self, device=0, video_width=320, jpeg_quality=90):
@@ -56,13 +58,18 @@ class CvCapture:
 __cv_capture = None
 
 
-def cv(config=None):
+def cvcap():
     """
     Creates OpenCV capture instance
     """
     global __cv_capture
 
     if not __cv_capture:
+        config = get_config()
+        config.get('CAMERA_URL', 0)
+        config.get('JPEG_QUALITY', 90)
+        config.get('VIDEO_WIDTH', 320)
+
         __cv_capture = CvCapture(device=config.CAMERA_URL,
                                  jpeg_quality=config.JPEG_QUALITY,
                                  video_width=config.VIDEO_WIDTH)

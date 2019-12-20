@@ -5,7 +5,7 @@ import logging
 
 from utils.config import get_config
 from utils.amqp import amqp
-from utils.cvcam import cv
+from utils.cvcam import cvcap
 from utils.stats import stats
 
 
@@ -22,14 +22,20 @@ class App:
     """
     Camera App State
     """
-
-    # camera constants
     config = get_config()
-    config.get('TOPIC_FRAME', "pycam.captures.%s.frame.jpeg" % (config.CAMERA_ID))
-    config.get('TOPIC_STILL', "pycam.captures.%s.still.jpeg" % (config.CAMERA_ID))
-    config.get('TOPIC_HEARTBEAT', "pycam.status.%s.heartbeat" % (config.CAMERA_ID))
-    config.get('TOPIC_CMD', "pycam.control.%s" % (config.CAMERA_ID))
 
+    # user details
+    config.AMQP_USERNAME = config.get('USERNAME', 'guest')
+    config.AMQP_PASSWORD = config.get('PASSWORD', 'guest')
+
+    # topic
+    config.get('CAMERA_ID', 'CAM0')
+    config.get('TOPIC_FRAME', "pycam.%s.%s.frame.jpeg" % (config.AMQP_USERNAME, config.CAMERA_ID))
+    config.get('TOPIC_STILL', "pycam.%s.%s.still.jpeg" % (config.AMQP_USERNAME, config.CAMERA_ID))
+    config.get('TOPIC_HEARTBEAT', "pycam.%s.%s.heartbeat" % (config.AMQP_USERNAME, config.CAMERA_ID))
+    config.get('TOPIC_CMD', "pycam.%s.%s.control" % (config.AMQP_USERNAME, config.CAMERA_ID))
+
+    # camera config
     config.IDLE_FRAME_TIMEOUT_S = 4.0
     config.ACTIVE_FRAME_TIMEOUT_S = 0.2
     config.HEALTH_CHECK_TIMEOUT_S = 5.0
@@ -40,7 +46,7 @@ class App:
     config.HEALTH_CHECK_TIMEOUT_NS = seconds2ns(config.HEALTH_CHECK_TIMEOUT_S)
 
     # camera state
-    cam = cv
+    cam = cvcap
     cam(config)
 
     td_frame = config.IDLE_FRAME_TIMEOUT_NS
@@ -84,17 +90,15 @@ def command_callback(ch, method, properties, body):
         }
     """
     try:
-        stats().incr('cam.cmd_count')
-        with stats().timer('cam.cmd_times'):
-            ts = time.time_ns()
-            cmd_obj = json.loads(body)
-            logging.info("cmd received: %s" % (cmd_obj))
+        ts = time.time_ns()
+        cmd_obj = json.loads(body)
+        logging.info("cmd received: %s" % (cmd_obj))
 
-            if cmd_obj['command'] == 'wake_up':
-                App.wake_up(ts)
+        if cmd_obj['command'] == 'wake_up':
+            App.wake_up(ts)
 
-            elif cmd_obj['command'] == 'capture':
-                read_and_pub_still(ts)
+        elif cmd_obj['command'] == 'capture':
+            read_and_pub_still(ts)
 
     except Exception as e:
         logging.exception("cmd error: %s" % str(e))
@@ -105,13 +109,10 @@ def try_read_and_pub_frame(ts):
     Read a JPEG low-res frame from camera and publish on topic
     """
     if ts > App.ts_next_frame:
-        stats().incr('cam.frame_count')
-        with stats().timer('cam.frame_time'):
-
-            # NOTE: using base 64 encoding to be compatible with JS front-end
-            encimg = App.cam().capture_jpeg_frame()
-            imgblob = base64.b64encode(encimg)
-            amqp().publish(routing_key=App.config.TOPIC_FRAME, body=imgblob, content_type='image/jpeg')
+        # NOTE: using base 64 encoding to be compatible with JS front-end
+        encimg = App.cam().capture_jpeg_frame()
+        imgblob = base64.b64encode(encimg)
+        amqp().publish(routing_key=App.config.TOPIC_FRAME, body=imgblob, content_type='image/jpeg')
 
         App.ts_next_frame = ts + App.td_frame
 
@@ -120,13 +121,10 @@ def read_and_pub_still(ts):
     """
     Read a JPEG high-res still from camera and publish on topic
     """
-    stats().incr('cam.still_count')
-    with stats().timer('cam.still_time'):
-
-        # NOTE: using base 64 encoding to be compatible with JS front-end
-        encimg = App.cam().capture_jpeg_still()
-        imgBlob = base64.b64encode(encimg)
-        amqp().publish(routing_key=App.config.TOPIC_STILL, body=imgBlob, content_type='image/jpeg')
+    # NOTE: using base 64 encoding to be compatible with JS front-end
+    encimg = App.cam().capture_jpeg_still()
+    imgBlob = base64.b64encode(encimg)
+    amqp().publish(routing_key=App.config.TOPIC_STILL, body=imgBlob, content_type='image/jpeg')
 
 
 def try_check_and_pub_health(ts):
@@ -134,17 +132,14 @@ def try_check_and_pub_health(ts):
     Check health and send out hearthbeat.
     """
     if ts > App.ts_next_healthcheck:
-        stats().incr('cam.heartbeat_count')
-        with stats().timer('cam.heartbeat_time'):
+        status = {
+            'name': App.config.CAMERA_ID,
+            'frame_timeout': App.td_frame,
+            'topic_still': App.config.TOPIC_STILL,
+            'topic_frame': App.config.TOPIC_FRAME
+        }
 
-            status = {
-                'name': App.config.CAMERA_ID,
-                'frame_timeout': App.td_frame,
-                'topic_still': App.config.TOPIC_STILL,
-                'topic_frame': App.config.TOPIC_FRAME
-            }
-
-            amqp().publish(routing_key=App.config.TOPIC_HEARTBEAT, body=json.dumps(status), content_type='application/json')
+        amqp().publish(routing_key=App.config.TOPIC_HEARTBEAT, body=json.dumps(status), content_type='application/json')
 
         App.ts_next_healthcheck = ts + App.td_health
 

@@ -1,12 +1,12 @@
 # Full Stack Rabbit Attack
 ## General
 - RabbitMQ
- - backend-to-frontend (using MQTT plugin)
- - 
+-- backend-to-frontend (using MQTT)
+-- backend-to-device (using AMQP or MQTT)
 - Grafana server stats
- - RabbitMQ integratition
- - Statsd integration
- - Client side
+-- RabbitMQ integratition (via prometheus)
+-- Statsd integration (server stats via graphite)
+-- Devices stats (??)
 
 ## Docker
 The `docker-compose.yaml` and `.env` files are in the source folder root.  Container images are built on base images (uploaded to dockerhub), to make deployment as quick as possible.  Containers communicate using docker network names.

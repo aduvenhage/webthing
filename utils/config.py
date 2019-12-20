@@ -18,27 +18,15 @@ class Config():
         self.config = {}
 
         # load base environment
-        self.base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         self.debug = self.get('DEBUG', False)
-        self.default_db_url = 'sqlite:///' + os.path.join(self.base_dir, 'webthing.db')
-
         if self.debug:
             dotenv.load_dotenv('debug.env', override=True)
 
-        # setup some config attributes to start with.
-        self.get('CAMERA_ID', 'CAM0')
-        self.get('CAMERA_URL', 0)
-        self.get('JPEG_QUALITY', 90)
-        self.get('VIDEO_WIDTH', 320)
-        self.get('AMQP_EXCHANGE', 'amq.topic')
-        self.get('AMQP_HOST', 'localhost')
-        self.get('AMQP_PORT', 5672)
-        self.get('AMQP_VIRTUAL_HOST', '/')
-        self.get('AMQP_USE_SSL', True)
-        self.get('AMQP_USERNAME', 'guest')
-        self.get('AMQP_PASSWORD', 'guest')
-        self.get('STATS_HOST', 'localhost')
-        self.get('STATS_PORT', 8125)
+        if not self.get('WEBTHING', False):
+            raise AttributeError("Failed to load valid config. Try specifying 'DEBUG=True' in environment.")
+
+        self.base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        self.default_db_url = 'sqlite:///' + os.path.join(self.base_dir, 'webthing.db')
         self.get('DATABASE_URL', self.default_db_url)
 
     def get(self, key, default):
@@ -53,7 +41,8 @@ class Config():
                 value = os.getenv(key)
 
             elif isinstance(default, bool):
-                value = os.getenv(key, str(default)) in ['True', 'TRUE', 'true']
+                value = os.getenv(key, str(default))
+                value = value in ['True', 'TRUE', 'true']
 
             else:
                 value = type(default)(os.getenv(key, str(default)))

@@ -6,6 +6,8 @@ from flaskapp.auth.models import User
 from flaskapp import create_app
 from flaskapp import db
 
+from config import get_config
+
 
 @click.command()
 @click.option('--erase_all', is_flag=True, required=False, help='Erase all users profiles.')
@@ -35,6 +37,7 @@ def main(erase_all, file):
     """
 
     # init flask app
+    # NOTE: will also load config
     app = create_app()
     app.app_context().push()
 
