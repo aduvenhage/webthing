@@ -6,7 +6,6 @@ import logging
 from utils.config import get_config
 from utils.amqp import amqp
 from utils.cvcam import cvcap
-from utils.stats import stats
 
 
 
@@ -47,7 +46,6 @@ class App:
 
     # camera state
     cam = cvcap
-    cam(config)
 
     td_frame = config.IDLE_FRAME_TIMEOUT_NS
     td_health = config.IDLE_FRAME_TIMEOUT_NS
@@ -146,14 +144,12 @@ def try_check_and_pub_health(ts):
 
 def main():
     # create camera command subscription
-    amqp(App.config).subscribe(channel_number=2, callback=command_callback, routing_key=App.config.TOPIC_CMD)
+    amqp().subscribe(channel_number=2, callback=command_callback, routing_key=App.config.TOPIC_CMD)
 
     # main loop
     while True:
         # read from AMQP (callback will be called on data events)
-        with stats(App.config).timer('cam.data_proc_time'):
-            amqp().process_data_events(App.config.CMD_LOOP_TIMEOUT)
-
+        amqp().process_data_events(App.config.CMD_LOOP_TIMEOUT)
         ts = time.time_ns()
 
         # read from camera

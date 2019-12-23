@@ -53,7 +53,7 @@ def main(erase_all, file):
              role='administrator',
              routing_keys='#')
 
-    passw = os.getenv('APP_PASSWORD', 'admin')
+    passw = os.getenv('PASSWORD', 'admin')
     u.set_password(passw)
 
     db.session.add(u)

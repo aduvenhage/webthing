@@ -8,6 +8,7 @@ USER root
 # move required files
 COPY ./deployment/nginx/nginx.conf /etc/nginx/nginx.conf
 COPY ./deployment/nginx/amqp_stream.conf /etc/nginx/amqp_stream.conf
+COPY ./deployment/nginx/amqp_stream_nossl.conf /etc/nginx/amqp_stream_nossl.conf
 COPY ./deployment/nginx/nginx.sh /nginx.sh
 
 

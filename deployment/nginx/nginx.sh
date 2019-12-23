@@ -20,8 +20,15 @@ printenv
 
 # complete config and restart
 # NOTE: nginx certbot does not modify stream blocks, so we have to manually add it to the config
-echo "include /etc/nginx/amqp_stream.conf;" >> /etc/nginx/nginx.conf
-#echo "include /etc/nginx/amqp_stream_nossl.conf;" >> /etc/nginx/nginx.conf
+if [ $AMQP_USE_SSL = True ]
+then
+    echo "TCP/SSL stream proxy config .. "
+    echo "include /etc/nginx/amqp_stream.conf;" >> /etc/nginx/nginx.conf
+else
+    echo "TCP/no-SSL stream proxy config .. "
+    echo "include /etc/nginx/amqp_stream_nossl.conf;" >> /etc/nginx/nginx.conf
+fi
+
 service nginx restart
 
 # just wait
