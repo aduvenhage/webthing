@@ -7,6 +7,7 @@ version: "3"
 services:
   graphite:
     image: graphiteapp/graphite-statsd
+
     container_name: graphite
     env_file: ./.env
     ports:

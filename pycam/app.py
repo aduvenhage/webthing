@@ -6,6 +6,7 @@ import logging
 from utils.config import get_config
 from utils.amqp import amqp
 from utils.cvcam import cvcap
+from utils.stats import stats
 
 
 
@@ -24,15 +25,15 @@ class App:
     config = get_config()
 
     # user details
-    config.AMQP_USERNAME = config.get('USERNAME', 'guest')
-    config.AMQP_PASSWORD = config.get('PASSWORD', 'guest')
+    config.AMQP_USERNAME = config.get('AMQP_USERNAME', 'guest')
+    config.AMQP_PASSWORD = config.get('AMQP_PASSWORD', 'guest')
 
     # topic
     config.get('CAMERA_ID', 'CAM0')
-    config.get('TOPIC_FRAME', "pycam.%s.%s.frame.jpeg" % (config.AMQP_USERNAME, config.CAMERA_ID))
-    config.get('TOPIC_STILL', "pycam.%s.%s.still.jpeg" % (config.AMQP_USERNAME, config.CAMERA_ID))
-    config.get('TOPIC_HEARTBEAT', "pycam.%s.%s.heartbeat" % (config.AMQP_USERNAME, config.CAMERA_ID))
-    config.get('TOPIC_CMD', "pycam.%s.%s.control" % (config.AMQP_USERNAME, config.CAMERA_ID))
+    config.get('TOPIC_FRAME', "%s.%s.frame.jpeg" % (config.AMQP_USERNAME, config.CAMERA_ID))
+    config.get('TOPIC_STILL', "%s.%s.still.jpeg" % (config.AMQP_USERNAME, config.CAMERA_ID))
+    config.get('TOPIC_HEARTBEAT', "%s.%s.heartbeat" % (config.AMQP_USERNAME, config.CAMERA_ID))
+    config.get('TOPIC_CMD', "%s.%s.control" % (config.AMQP_USERNAME, config.CAMERA_ID))
 
     # camera config
     config.IDLE_FRAME_TIMEOUT_S = 4.0
@@ -121,8 +122,10 @@ def read_and_pub_still(ts):
     """
     # NOTE: using base 64 encoding to be compatible with JS front-end
     encimg = App.cam().capture_jpeg_still()
-    imgBlob = base64.b64encode(encimg)
-    amqp().publish(routing_key=App.config.TOPIC_STILL, body=imgBlob, content_type='image/jpeg')
+
+    with stats().timer('pycam.pub'):
+        imgBlob = base64.b64encode(encimg)
+        amqp().publish(routing_key=App.config.TOPIC_STILL, body=imgBlob, content_type='image/jpeg')
 
 
 def try_check_and_pub_health(ts):

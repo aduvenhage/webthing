@@ -5,7 +5,8 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.js" type="text/javascript"></script>
 
         <script>
-            var camId = 'CAM0';
+            var username = 'admin'
+            var password = '123456'
             var camWakeTimer = null;
 
             window.onload = function() {
@@ -25,8 +26,8 @@
                 client.connect({
                     onSuccess:onConnect,
                     onFailure:onConnectionLost,
-                    userName:"guest",
-                    password:"guest",
+                    userName:username,
+                    password:password,
                     useSSL: false
                 });
             }
@@ -35,8 +36,8 @@
             function onConnect() {
                 // Once a connection has been made, make a subscription and send a message.
                 console.log("onConnect");
-                client.subscribe("pycam/captures/#");
-                client.subscribe("pycam/status/#");
+                client.subscribe(username + '/*/frame/*');
+                client.subscribe(username + '/*/heartbeat');
 
                 // wake up cameras
                 wakeUp();
@@ -64,19 +65,17 @@
 
             // called when a message arrives
             function onMessageArrived(message) {
-                if (message.destinationName.includes('pycam/status/')) {
+                if (message.destinationName.includes('heartbeat')) {
                     obj = JSON.parse(message.payloadString);
                     document.getElementById('cam_id').innerHTML = obj.name;
                 }
-                else if (message.destinationName.includes('pycam/captures/')) {
-                    if (message.destinationName.includes('/frame/')) {
-                        document.getElementById('cam_txt').innerHTML = 'capture: ' + message.payloadString.length;
+                else if (message.destinationName.includes('frame')) {
+                        document.getElementById('cam_txt').innerHTML = 'frame: ' + message.payloadString.length;
                         //document.getElementById('cam_frm').src = 'data:image/png;base64,' + message.payloadString;                
                     }
-                    else if (message.destinationName.includes('/still/')) {
-                        document.getElementById('cam_txt').innerHTML = 'still: ' + message.payloadString.length;
-                        //document.getElementById('cam_stl').src = 'data:image/png;base64,' + message.payloadString;                
-                    }
+                else if (message.destinationName.includes('still')) {
+                    document.getElementById('cam_txt').innerHTML = 'still: ' + message.payloadString.length;
+                    //document.getElementById('cam_stl').src = 'data:image/png;base64,' + message.payloadString;                
                 }
             }
 
