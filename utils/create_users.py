@@ -38,6 +38,10 @@ def main(erase_all, file):
 
     # init flask app
     # NOTE: will also load config
+    config = get_config()
+    config.AMQP_USERNAME = config.get('AMQP_USERNAME', 'guest')
+    config.AMQP_PASSWORD = config.get('AMQP_PASSWORD', 'guest')
+
     app = create_app()
     app.app_context().push()
 
@@ -48,12 +52,12 @@ def main(erase_all, file):
 
     # create default super user
     print('Creating superuser object ...')
-    u = User(username='admin',
+    u = User(username=config.AMQP_USERNAME,
              email='aduvenhage@gmail.com',
              role='administrator',
              routing_keys='#')
 
-    passw = os.getenv('PASSWORD', 'admin')
+    passw = config.AMQP_PASSWORD
     u.set_password(passw)
 
     db.session.add(u)

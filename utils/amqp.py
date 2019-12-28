@@ -85,7 +85,7 @@ class Amqp:
         except Exception:
             pass
 
-    def publish(self, routing_key, body, content_type):
+    def publish(self, routing_key, body, content_type, headers=None):
         """
         Publish new data.
         Always uses channel 1
@@ -94,7 +94,8 @@ class Amqp:
                                        routing_key=routing_key,
                                        body=body,
                                        properties=pika.BasicProperties(
-                                            content_type='application/json'
+                                            content_type='application/json',
+                                            headers=headers
                                        ))
 
 

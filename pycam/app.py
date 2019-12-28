@@ -55,6 +55,12 @@ class App:
     ts_stop_active_state = 0
     state = ''
 
+    # ampqp setuo
+    amqp_headers = {
+        'source': get_config().CAMERA_ID,
+        'user': get_config().AMQP_USERNAME
+    }
+
     @classmethod
     def wake_up(cls, ts):
         """
@@ -111,7 +117,10 @@ def try_read_and_pub_frame(ts):
         # NOTE: using base 64 encoding to be compatible with JS front-end
         encimg = App.cam().capture_jpeg_frame()
         imgblob = base64.b64encode(encimg)
-        amqp().publish(routing_key=App.config.TOPIC_FRAME, body=imgblob, content_type='image/jpeg')
+        amqp().publish(routing_key=App.config.TOPIC_FRAME, 
+                       body=imgblob, 
+                       content_type='image/jpeg', 
+                       headers=App.amqp_headers)
 
         App.ts_next_frame = ts + App.td_frame
 
@@ -125,7 +134,10 @@ def read_and_pub_still(ts):
 
     with stats().timer('pycam.pub'):
         imgBlob = base64.b64encode(encimg)
-        amqp().publish(routing_key=App.config.TOPIC_STILL, body=imgBlob, content_type='image/jpeg')
+        amqp().publish(routing_key=App.config.TOPIC_STILL, 
+                       body=imgBlob, 
+                       content_type='image/jpeg',
+                       headers=App.amqp_headers)
 
 
 def try_check_and_pub_health(ts):
@@ -140,7 +152,10 @@ def try_check_and_pub_health(ts):
             'topic_frame': App.config.TOPIC_FRAME
         }
 
-        amqp().publish(routing_key=App.config.TOPIC_HEARTBEAT, body=json.dumps(status), content_type='application/json')
+        amqp().publish(routing_key=App.config.TOPIC_HEARTBEAT, 
+                       body=json.dumps(status), 
+                       content_type='application/json',
+                       headers=App.amqp_headers)
 
         App.ts_next_healthcheck = ts + App.td_health
 
