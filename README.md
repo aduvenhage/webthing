@@ -60,6 +60,7 @@ Install docker-machine: https://docs.docker.com/machine/install-machine/
 ### Exec into Containers
 - **Prometheus**: docker-compose exec prometheus /bin/sh
 - **RabbitMQ**: docker-compose exec rabbitmq bash
+- **Graphite**: docker-compose exec graphite sh
 
 
 ## Flask
