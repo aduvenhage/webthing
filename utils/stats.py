@@ -1,6 +1,6 @@
 import statsd
 
-from utils.config import get_config
+from utils.config import config
 
 
 __stats_client = None
@@ -10,7 +10,7 @@ def stats():
     global __stats_client
 
     if not __stats_client:
-        config = get_config()
+        config = config()
         config.get('STATS_HOST', 'localhost')
         config.get('STATS_PORT', 8125)
 

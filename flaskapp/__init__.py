@@ -8,7 +8,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
 
-from utils.config import get_config
+from utils.config import config
 
 
 # globals
@@ -23,7 +23,7 @@ def create_app():
     """
 
     # get app config
-    config = get_config()
+    config = config()
     config.SQLALCHEMY_DATABASE_URI = config.DATABASE_URL
     config.SQLALCHEMY_TRACK_MODIFICATIONS = False
 

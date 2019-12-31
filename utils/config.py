@@ -7,7 +7,7 @@ class Config():
     Simple config class.
 
     Usage:
-    - 'get_config()' function creates and returns one global config object.
+    - 'config()' function creates and returns one global config object.
     - 'config.get(...)' reads in values from environment.
     - 'config.property_name' returns config value if object has no attribute with that name.
     - i.e. can overwrite config values with 'config.property_name = ...'
@@ -70,7 +70,7 @@ class Config():
 __the_config = None
 
 
-def get_config():
+def config():
     """
     Returns global config object
     """

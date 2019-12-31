@@ -1,7 +1,9 @@
 import pika
 import ssl
+import base64
+import json
 
-from utils.config import get_config
+from utils.config import config
 
 
 class Amqp:
@@ -18,6 +20,7 @@ class Amqp:
         self.__vhost = virtual_host
         self.__exchange = exchange
         self.__amqp_channels = {}
+        self.__msg_headers = {}
 
         credentials = pika.PlainCredentials(self.__user, self.__passw)
 
@@ -46,6 +49,18 @@ class Amqp:
         self.__amqp_channels[1].exchange_declare(exchange=self.__exchange,
                                                  exchange_type='topic',
                                                  durable=True)
+
+    def set_msg_headers(self, headers):
+        """
+        Set message headers that will be attached when publishing images, json, etc. messages
+        """
+        self.__msg_headers = headers
+
+    def get_msg_headers(self, **kwargs):
+        """
+        returns set amqp message headers (also updated with provided parameters)
+        """
+        return {**self.__msg_headers, **kwargs}
 
     def channel(self, channel_number=None):
         """
@@ -90,38 +105,59 @@ class Amqp:
         Publish new data.
         Always uses channel 1
         """
-        amqp().channel().basic_publish(exchange=self.__exchange,
-                                       routing_key=routing_key,
-                                       body=body,
-                                       properties=pika.BasicProperties(
-                                            content_type='application/json',
-                                            headers=headers
-                                       ))
+        self.channel().basic_publish(exchange=self.__exchange,
+                                     routing_key=routing_key,
+                                     body=body,
+                                     properties=pika.BasicProperties(
+                                        content_type='application/json',
+                                        headers=headers
+                                     ))
+
+    def publish_jpeg_image(self, msg_type, routing_key, jpegimg, timestamp):
+        # NOTE: using base 64 encoding to be compatible with JS front-end
+        imgblob = base64.b64encode(jpegimg)
+        self.publish(routing_key=routing_key,
+                     body=imgblob,
+                     content_type='image/jpeg',
+                     headers=self.get_msg_headers(
+                                        msg_type=msg_type,
+                                        routing_key=routing_key,
+                                        timestamp=timestamp)
+                     )
+
+    def publish_json_message(self, msg_type, routing_key, message, timestamp):
+        self.publish(routing_key=routing_key,
+                     body=json.dumps(message),
+                     content_type='application/json',
+                     headers=self.get_msg_headers(
+                                        msg_type=msg_type,
+                                        routing_key=routing_key,
+                                        timestamp=timestamp)
+                     )
 
 
-__amqp = None
+__the_amqp = None
 
 
 def amqp():
     """
     Creates an AMQP client instance
     """
-    global __amqp
-
-    if not __amqp:
-        config = get_config()
+    global __the_amqp
+    if not __the_amqp:
+        config = config()
         config.get('AMQP_EXCHANGE', 'amq.topic')
         config.get('AMQP_HOST', 'localhost')
         config.get('AMQP_PORT', 5672)
         config.get('AMQP_VIRTUAL_HOST', '/')
         config.get('AMQP_USE_SSL', False)
 
-        __amqp = Amqp(host=config.AMQP_HOST,
-                      port=config.AMQP_PORT,
-                      use_ssl=config.AMQP_USE_SSL,
-                      user=config.AMQP_USERNAME,
-                      password=config.AMQP_PASSWORD,
-                      virtual_host=config.AMQP_VIRTUAL_HOST,
-                      exchange=config.AMQP_EXCHANGE)
+        __the_amqp = Amqp(host=config.AMQP_HOST,
+                          port=config.AMQP_PORT,
+                          use_ssl=config.AMQP_USE_SSL,
+                          user=config.AMQP_USERNAME,
+                          password=config.AMQP_PASSWORD,
+                          virtual_host=config.AMQP_VIRTUAL_HOST,
+                          exchange=config.AMQP_EXCHANGE)
 
-    return __amqp
+    return __the_amqp

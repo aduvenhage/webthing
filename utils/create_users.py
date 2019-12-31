@@ -6,7 +6,7 @@ from flaskapp.auth.models import User
 from flaskapp import create_app
 from flaskapp import db
 
-from config import get_config
+from config import config
 
 
 @click.command()
@@ -38,7 +38,7 @@ def main(erase_all, file):
 
     # init flask app
     # NOTE: will also load config
-    config = get_config()
+    config = config()
     config.AMQP_USERNAME = config.get('AMQP_USERNAME', 'guest')
     config.AMQP_PASSWORD = config.get('AMQP_PASSWORD', 'guest')
 

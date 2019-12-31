@@ -1,6 +1,6 @@
 import cv2
 
-from utils.config import get_config
+from utils.config import config
 
 
 class CvCapture:
@@ -65,7 +65,7 @@ def cvcap():
     global __cv_capture
 
     if not __cv_capture:
-        config = get_config()
+        config = config()
         config.get('CAMERA_URL', 0)
         config.get('JPEG_QUALITY', 90)
         config.get('VIDEO_WIDTH', 320)
