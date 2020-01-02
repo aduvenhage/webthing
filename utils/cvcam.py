@@ -65,13 +65,13 @@ def cvcap():
     global __cv_capture
 
     if not __cv_capture:
-        config = config()
-        config.get('CAMERA_URL', 0)
-        config.get('JPEG_QUALITY', 90)
-        config.get('VIDEO_WIDTH', 320)
+        cfg = config()
+        cfg.get('CAMERA_URL', 0)
+        cfg.get('JPEG_QUALITY', 90)
+        cfg.get('VIDEO_WIDTH', 320)
 
-        __cv_capture = CvCapture(device=config.CAMERA_URL,
-                                 jpeg_quality=config.JPEG_QUALITY,
-                                 video_width=config.VIDEO_WIDTH)
+        __cv_capture = CvCapture(device=cfg.CAMERA_URL,
+                                 jpeg_quality=cfg.JPEG_QUALITY,
+                                 video_width=cfg.VIDEO_WIDTH)
 
     return __cv_capture

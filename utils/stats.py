@@ -10,10 +10,10 @@ def stats():
     global __stats_client
 
     if not __stats_client:
-        config = config()
-        config.get('STATS_HOST', 'localhost')
-        config.get('STATS_PORT', 8125)
+        cfg = config()
+        cfg.get('STATS_HOST', 'localhost')
+        cfg.get('STATS_PORT', 8125)
 
-        __stats_client = statsd.StatsClient(config.STATS_HOST, config.STATS_PORT)
+        __stats_client = statsd.StatsClient(cfg.STATS_HOST, cfg.STATS_PORT)
 
     return __stats_client

@@ -23,12 +23,12 @@ def create_app():
     """
 
     # get app config
-    config = config()
-    config.SQLALCHEMY_DATABASE_URI = config.DATABASE_URL
-    config.SQLALCHEMY_TRACK_MODIFICATIONS = False
+    cfg = config()
+    cfg.SQLALCHEMY_DATABASE_URI = config.DATABASE_URL
+    cfg.SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    config.get('SECRET_KEY', None)
-    if config.SECRET_KEY == None:
+    cfg.get('SECRET_KEY', None)
+    if cfg.SECRET_KEY is None:
         raise Exception('No value specified for SECRET_KEY')
 
     # create flask app
@@ -45,7 +45,7 @@ def create_app():
 
     app.logger.addHandler(file_handler)
 
-    if config.DEBUG:
+    if cfg.DEBUG:
         app.logger.setLevel(logging.DEBUG)
     else:
         app.logger.setLevel(logging.INFO)

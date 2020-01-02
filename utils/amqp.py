@@ -1,6 +1,5 @@
 import pika
 import ssl
-import base64
 import json
 
 from utils.config import config
@@ -109,26 +108,19 @@ class Amqp:
                                      routing_key=routing_key,
                                      body=body,
                                      properties=pika.BasicProperties(
-                                        content_type='application/json',
+                                        content_type=content_type,
                                         headers=headers
                                      ))
 
-    def publish_jpeg_image(self, msg_type, routing_key, jpegimg, timestamp):
-        # NOTE: using base 64 encoding to be compatible with JS front-end
-        imgblob = base64.b64encode(jpegimg)
+    def publish_message(self, msg_type, routing_key, message, timestamp,
+                        encoder=json.dumps, content_type='application/json'):
+        """
+        Publish new data, with additional header fields (msg_type, routing_key, timestamp, etc.)
+        Always uses channel 1
+        """
         self.publish(routing_key=routing_key,
-                     body=imgblob,
-                     content_type='image/jpeg',
-                     headers=self.get_msg_headers(
-                                        msg_type=msg_type,
-                                        routing_key=routing_key,
-                                        timestamp=timestamp)
-                     )
-
-    def publish_json_message(self, msg_type, routing_key, message, timestamp):
-        self.publish(routing_key=routing_key,
-                     body=json.dumps(message),
-                     content_type='application/json',
+                     body=encoder(message),
+                     content_type=content_type,
                      headers=self.get_msg_headers(
                                         msg_type=msg_type,
                                         routing_key=routing_key,
@@ -145,19 +137,19 @@ def amqp():
     """
     global __the_amqp
     if not __the_amqp:
-        config = config()
-        config.get('AMQP_EXCHANGE', 'amq.topic')
-        config.get('AMQP_HOST', 'localhost')
-        config.get('AMQP_PORT', 5672)
-        config.get('AMQP_VIRTUAL_HOST', '/')
-        config.get('AMQP_USE_SSL', False)
+        cfg = config()
+        cfg.get('AMQP_EXCHANGE', 'amq.topic')
+        cfg.get('AMQP_HOST', 'localhost')
+        cfg.get('AMQP_PORT', 5672)
+        cfg.get('AMQP_VIRTUAL_HOST', '/')
+        cfg.get('AMQP_USE_SSL', False)
 
-        __the_amqp = Amqp(host=config.AMQP_HOST,
-                          port=config.AMQP_PORT,
-                          use_ssl=config.AMQP_USE_SSL,
-                          user=config.AMQP_USERNAME,
-                          password=config.AMQP_PASSWORD,
-                          virtual_host=config.AMQP_VIRTUAL_HOST,
-                          exchange=config.AMQP_EXCHANGE)
+        __the_amqp = Amqp(host=cfg.AMQP_HOST,
+                          port=cfg.AMQP_PORT,
+                          use_ssl=cfg.AMQP_USE_SSL,
+                          user=cfg.AMQP_USERNAME,
+                          password=cfg.AMQP_PASSWORD,
+                          virtual_host=cfg.AMQP_VIRTUAL_HOST,
+                          exchange=cfg.AMQP_EXCHANGE)
 
     return __the_amqp

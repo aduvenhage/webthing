@@ -38,9 +38,9 @@ def main(erase_all, file):
 
     # init flask app
     # NOTE: will also load config
-    config = config()
-    config.AMQP_USERNAME = config.get('AMQP_USERNAME', 'guest')
-    config.AMQP_PASSWORD = config.get('AMQP_PASSWORD', 'guest')
+    cfg = config()
+    cfg.AMQP_USERNAME = cfg.get('AMQP_USERNAME', 'guest')
+    cfg.AMQP_PASSWORD = cfg.get('AMQP_PASSWORD', 'guest')
 
     app = create_app()
     app.app_context().push()
