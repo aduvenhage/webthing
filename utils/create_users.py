@@ -52,12 +52,12 @@ def main(erase_all, file):
 
     # create default super user
     print('Creating superuser object ...')
-    u = User(username=config.AMQP_USERNAME,
+    u = User(username=cfg.AMQP_USERNAME,
              email='aduvenhage@gmail.com',
              role='administrator',
              routing_keys='#')
 
-    passw = config.AMQP_PASSWORD
+    passw = cfg.AMQP_PASSWORD
     u.set_password(passw)
 
     db.session.add(u)

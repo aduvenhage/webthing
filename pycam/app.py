@@ -69,10 +69,10 @@ class State:
 
     @classmethod
     def init(cls):
-        cls.config = load_config()
+        cls.cfg = load_config()
 
-        cls.td_frame = cls.config.IDLE_FRAME_TIMEOUT_NS
-        cls.td_health = cls.config.IDLE_FRAME_TIMEOUT_NS
+        cls.td_frame = cls.cfg.IDLE_FRAME_TIMEOUT_NS
+        cls.td_health = cls.cfg.IDLE_FRAME_TIMEOUT_NS
         cls.ts_next_frame = 0
         cls.ts_next_healthcheck = 0
         cls.ts_stop_active_state = 0
@@ -85,11 +85,11 @@ class State:
         """
         if cls.state != cls.STATE.WAKE:
             logging.info('state - %s' % (cls.state.name))
-            cls.td_frame = cls.config.ACTIVE_FRAME_TIMEOUT_NS
+            cls.td_frame = cls.cfg.ACTIVE_FRAME_TIMEOUT_NS
             cls.state = cls.STATE.WAKE
             cls.ts_next_frame = ts
 
-        cls.ts_stop_active_state = ts + cls.config.IDLE_FRAME_TIMEOUT_NS
+        cls.ts_stop_active_state = ts + cls.cfg.IDLE_FRAME_TIMEOUT_NS
 
     @classmethod
     def try_sleep(cls, ts):
@@ -99,7 +99,7 @@ class State:
         if cls.state != cls.STATE.WAKE:
             if ts > cls.ts_stop_active_state:
                 logging.info('state - %s' % (cls.STATE.WAKE))
-                cls.td_frame = cls.config.IDLE_FRAME_TIMEOUT_NS
+                cls.td_frame = cls.cfg.IDLE_FRAME_TIMEOUT_NS
                 cls.state = cls.STATE.WAKE
 
 

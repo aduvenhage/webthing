@@ -3,11 +3,14 @@ from . import bp
 from flask_login import current_user, login_user, logout_user
 from flask import render_template, flash, redirect, url_for, request, current_app
 
+from utils.view_stats import view_stats
+
 from .models import User
 from .forms import LoginForm
 
 
 @bp.route('/login', methods=['GET', 'POST'])
+@view_stats
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('main.index'))
@@ -36,6 +39,7 @@ def login():
 
 
 @bp.route('/mq-user', methods=['POST'])
+@view_stats
 def mq_user():
 
     username = request.form.get('username', '')
@@ -59,6 +63,7 @@ def mq_user():
 
 
 @bp.route('/mq-vhost', methods=['POST'])
+@view_stats
 def mq_vhost():
     username = request.form.get('username', '')
     user = User.query.filter_by(username=username).first()
@@ -77,6 +82,7 @@ def mq_vhost():
 
 
 @bp.route('/mq-resource', methods=['POST'])
+@view_stats
 def mq_resource():
     username = request.form.get('username', '')
     user = User.query.filter_by(username=username).first()
@@ -96,6 +102,7 @@ def mq_resource():
 
 
 @bp.route('/mq-topic', methods=['POST'])
+@view_stats
 def mq_topic():
     username = request.form.get('username', '')
     user = User.query.filter_by(username=username).first()

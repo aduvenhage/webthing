@@ -24,7 +24,7 @@ def create_app():
 
     # get app config
     cfg = config()
-    cfg.SQLALCHEMY_DATABASE_URI = config.DATABASE_URL
+    cfg.SQLALCHEMY_DATABASE_URI = cfg.DATABASE_URL
     cfg.SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     cfg.get('SECRET_KEY', None)
@@ -33,7 +33,7 @@ def create_app():
 
     # create flask app
     app = Flask(__name__)
-    app.config.from_object(config)
+    app.config.from_object(cfg)
 
     # setup logging
     if not os.path.exists('logs'):
