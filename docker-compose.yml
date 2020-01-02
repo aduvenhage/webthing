@@ -41,19 +41,19 @@ services:
     env_file: ./.env
     restart: always
 
-  server:  
+  flask:  
     build:
       context: .
       args:
         DEBUG: ${DEBUG}
         SRC_DEPLOY_PATH: ${SRC_DEPLOY_PATH}
-      dockerfile: ./deployment/server/Dockerfile 
+      dockerfile: ./deployment/flask/Dockerfile 
     env_file: ./.env
     links:
       - rabbitmq
       - graphite
     command:
-      sh /server.sh
+      sh /flask.sh
     restart: always
 
   nginx:  

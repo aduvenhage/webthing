@@ -7,7 +7,7 @@ ARG DEBUG
 ARG SRC_DEPLOY_PATH
 
 COPY ./ ${SRC_DEPLOY_PATH}
-COPY ./deployment/server/server.sh /server.sh
+COPY ./deployment/flask/flask.sh /flask.sh
 
-RUN pip install -r ${SRC_DEPLOY_PATH}/deployment/server/requirements.txt
+RUN pip install -r ${SRC_DEPLOY_PATH}/deployment/flask/requirements.txt
 

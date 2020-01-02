@@ -36,7 +36,8 @@
             function onConnect() {
                 // Once a connection has been made, make a subscription and send a message.
                 console.log("onConnect");
-                client.subscribe(username + '/*/frame/*');
+                client.subscribe(username + '/*/frame/jpeg');
+                client.subscribe(username + '/*/still/jpeg');
                 client.subscribe(username + '/*/heartbeat');
 
                 // wake up cameras
@@ -65,29 +66,31 @@
 
             // called when a message arrives
             function onMessageArrived(message) {
+                obj = JSON.parse(message.payloadString);
+                console.log('on message: ', obj)
+
                 if (message.destinationName.includes('heartbeat')) {
-                    obj = JSON.parse(message.payloadString);
-                    document.getElementById('cam_id').innerHTML = obj.name;
+                    document.getElementById('cam_id').innerHTML = obj.source;
                 }
                 else if (message.destinationName.includes('frame')) {
-                        document.getElementById('cam_txt').innerHTML = 'frame: ' + message.payloadString.length;
-                        //document.getElementById('cam_frm').src = 'data:image/png;base64,' + message.payloadString;                
-                    }
+                    document.getElementById('cam_txt').innerHTML = 'frame: ' + obj.b64image.length;
+                    document.getElementById('cam_frm').src = 'data:image/jpeg;base64,' + obj.b64image;
+                }
                 else if (message.destinationName.includes('still')) {
-                    document.getElementById('cam_txt').innerHTML = 'still: ' + message.payloadString.length;
-                    //document.getElementById('cam_stl').src = 'data:image/png;base64,' + message.payloadString;                
+                    document.getElementById('cam_txt').innerHTML = 'still: ' + obj.b64image.length;
+                    document.getElementById('cam_stl').src = 'data:image/jpeg;base64,' + obj.b64image;
                 }
             }
 
             function captureStill() {
-                message = new Paho.MQTT.Message('{"command": "capture"}');
-                message.destinationName = 'pycam/control/' + camId;
+                message = new Paho.MQTT.Message('{"class": "Command", "name": "capture", "value": "None"}');
+                message.destinationName = username + '/CAM0/control'
                 client.send(message);
             }
 
             function wakeUp() {
-                message = new Paho.MQTT.Message('{"command": "wake_up"}');
-                message.destinationName = 'pycam/control/' + camId;
+                message = new Paho.MQTT.Message('{"class": "Command", "name": "wake_up", "value": "None"}');
+                message.destinationName = username + '/CAM0/control'
                 client.send(message);
             }
 

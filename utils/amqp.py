@@ -19,7 +19,6 @@ class Amqp:
         self.__vhost = virtual_host
         self.__exchange = exchange
         self.__amqp_channels = {}
-        self.__msg_headers = {}
 
         credentials = pika.PlainCredentials(self.__user, self.__passw)
 
@@ -48,18 +47,6 @@ class Amqp:
         self.__amqp_channels[1].exchange_declare(exchange=self.__exchange,
                                                  exchange_type='topic',
                                                  durable=True)
-
-    def set_msg_headers(self, headers):
-        """
-        Set message headers that will be attached when publishing images, json, etc. messages
-        """
-        self.__msg_headers = headers
-
-    def get_msg_headers(self, **kwargs):
-        """
-        returns set amqp message headers (also updated with provided parameters)
-        """
-        return {**self.__msg_headers, **kwargs}
 
     def channel(self, channel_number=None):
         """
@@ -111,21 +98,6 @@ class Amqp:
                                         content_type=content_type,
                                         headers=headers
                                      ))
-
-    def publish_message(self, msg_type, routing_key, message, timestamp,
-                        encoder=json.dumps, content_type='application/json'):
-        """
-        Publish new data, with additional header fields (msg_type, routing_key, timestamp, etc.)
-        Always uses channel 1
-        """
-        self.publish(routing_key=routing_key,
-                     body=encoder(message),
-                     content_type=content_type,
-                     headers=self.get_msg_headers(
-                                        msg_type=msg_type,
-                                        routing_key=routing_key,
-                                        timestamp=timestamp)
-                     )
 
 
 __the_amqp = None

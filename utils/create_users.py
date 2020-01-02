@@ -18,7 +18,7 @@ def main(erase_all, file):
     See click options above.
 
     NOTES:
-    - to create a new DB, see 'deployment/server/create_db.sh'
+    - to create a new DB, see 'deployment/flask/create_db.sh'
 
     User file format (JSON):
 

@@ -84,7 +84,7 @@ class State:
         Reset idle/sleep timer and wake up if required.
         """
         if cls.state != cls.STATE.WAKE:
-            logging.info('state - %s' % (cls.state.name))
+            logging.info('state - %s' % (cls.STATE.WAKE))
             cls.td_frame = cls.cfg.ACTIVE_FRAME_TIMEOUT_NS
             cls.state = cls.STATE.WAKE
             cls.ts_next_frame = ts
@@ -96,11 +96,11 @@ class State:
         """
         Test idle/sleep timer and go to sleep if required
         """
-        if cls.state != cls.STATE.WAKE:
+        if cls.state != cls.STATE.SLEEP:
             if ts > cls.ts_stop_active_state:
-                logging.info('state - %s' % (cls.STATE.WAKE))
+                logging.info('state - %s' % (cls.STATE.SLEEP))
                 cls.td_frame = cls.cfg.IDLE_FRAME_TIMEOUT_NS
-                cls.state = cls.STATE.WAKE
+                cls.state = cls.STATE.SLEEP
 
 
 def try_read_and_pub_frame(ts):
@@ -109,12 +109,13 @@ def try_read_and_pub_frame(ts):
     """
     if ts > State.ts_next_frame:
         encimg = cam().capture_jpeg_frame()
-        amqp().publish_message(msg_type='frame',
-                               routing_key=config().TOPIC_FRAME,
-                               message=encimg,
-                               timestamp=ts,
-                               encoder=base64.b64encode,
-                               content_type='image/jpeg')
+        image = Image(b64image=base64.b64encode(encimg).decode('utf-8'),
+                      content_type='image/jpeg',
+                      timestamp_ns=time.time_ns())
+
+        amqp().publish(routing_key=config().TOPIC_FRAME,
+                       body=encode_message(image),
+                       content_type='application/json')
 
         State.ts_next_frame = ts + State.td_frame
 
@@ -124,13 +125,13 @@ def try_read_and_pub_still(ts):
     Read a JPEG high-res still from camera and publish on topic
     """
     encimg = cam().capture_jpeg_still()
-    amqp().publish_message(msg_type='still',
-                           routing_key=config().TOPIC_FRAME,
-                           message=encimg,
-                           timestamp=ts,
-                           encoder=base64.b64encode,
-                           content_type='image/jpeg')
+    image = Image(b64image=base64.b64encode(encimg).decode('utf-8'),
+                  content_type='image/jpeg',
+                  timestamp_ns=time.time_ns())
 
+    amqp().publish(routing_key=config().TOPIC_STILL,
+                   body=encode_message(image),
+                   content_type='application/json')
 
 
 def try_check_and_pub_health(ts):
@@ -138,12 +139,11 @@ def try_check_and_pub_health(ts):
     Check health and send out hearthbeat.
     """
     if ts > State.ts_next_healthcheck:
-        amqp().publish_message(msg_type='hbeat',
-                               routing_key=config().TOPIC_HEARTBEAT,
-                               message=device().get_health(),
-                               timestamp=ts,
-                               encoder=encode_message,
-                               content_type=encoded_content_type())
+        health = device().get_health()
+
+        amqp().publish(routing_key=config().TOPIC_HEARTBEAT,
+                       body=encode_message(health),
+                       content_type=encoded_content_type())
 
         State.ts_next_healthcheck = ts + State.td_health
 
@@ -154,7 +154,7 @@ def command_callback(ch, method, properties, body):
     """
     try:
         ts = time.time_ns()
-        cmd_obj = decode_message(body, properties.content_type)
+        cmd_obj = decode_message(body)
 
         if cmd_obj is not None:
             logging.info("object received: %s" % (cmd_obj))

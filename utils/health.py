@@ -1,5 +1,6 @@
 import psutil
 import platform
+import time
 
 from utils.config import config
 from utils.messages import DeviceHealth
@@ -25,7 +26,8 @@ class Device:
             cpu_load=psutil.getloadavg(),
             cpu_count=psutil.cpu_count(),
             disk_usage=psutil.disk_usage('/').percent,
-            cpu_temp=0
+            cpu_temp=0,
+            timestamp_ns=time.time_ns()
         )
 
 

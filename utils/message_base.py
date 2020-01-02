@@ -56,14 +56,11 @@ def find_message_type(type_name):
         raise Exception("Unknown Message sub-type '%s'" % (type_name))
 
 
-def decode_message(msg_str, content_type):
+def decode_message(msg_str):
     """
     Decode JSON string into message object of correct type/class.
     Returns: message object
     """
-    if content_type != encoded_content_type():
-        raise Exception("Message decoding failed. Invalid content type '%s'" % (content_type))
-
     msg_obj = json.loads(msg_str)
     if msg_obj is not None:
         msg_type_name = msg_obj.pop('class')

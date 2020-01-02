@@ -18,7 +18,7 @@ sleep 5s
 cd $SRC_DEPLOY_PATH
 
 # create DB
-sh deployment/server/create_db.sh
+sh deployment/flask/create_db.sh
 
 # setup env
 export FLASK_APP=flaskapp/app.py
@@ -27,7 +27,7 @@ export FLASK_DEBUG=1
 
 # create user(s)
 export PYTHONPATH=$SRC_DEPLOY_PATH
-python utils/create_users.py --file deployment/server/users.json
+python utils/create_users.py --file deployment/flask/users.json
 
 # run app
 flask run --host=0.0.0.0 --port=5000
