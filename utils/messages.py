@@ -37,7 +37,8 @@ class Image(Message):
     """
     Base64 encoded image.
     """
-    def __init__(self, b64image=None, content_type=None, timestamp_ns=None):
+    def __init__(self, source=None, b64image=None, content_type=None, timestamp_ns=None):
+        self.source = source
         self.b64image = b64image
         self.content_type = content_type
         self.timestamp_ns = timestamp_ns

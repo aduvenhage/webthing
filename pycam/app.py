@@ -1,7 +1,6 @@
 import time
 import json
 import logging
-import base64
 from enum import Enum
 
 from utils.config import config
@@ -12,13 +11,27 @@ from utils.health import device
 from utils.messages import *
 
 
-"""
- Global/startup init
- - setup logging since other modules might need it
- - select correct camera, etc.
-"""
-logging.basicConfig(format='%(asctime)s [%(levelname)s]: %(message)s', level=logging.INFO)
-cam = cvcap
+class STATE(Enum):
+    """
+    Possible app states (awake, sleep, etc)
+    """
+    NONE = 0
+    SLEEP = 1
+    WAKE = 2
+
+
+class App:
+    """
+    Application state and variables.
+    """
+    cfg = None
+    td_frame = 0
+    td_health = 0
+    ts_next_frame = 0
+    ts_next_healthcheck = 0
+    ts_stop_active_state = 0
+    state = STATE.NONE
+    cam = cvcap
 
 
 def seconds2ns(secs):
@@ -30,6 +43,7 @@ def load_config():
     Load device config from environment.
     """
     cfg = config()
+    logging.basicConfig(format='%(asctime)s [%(levelname)s]: %(message)s', level=logging.INFO)
 
     # user details
     cfg.AMQP_USERNAME = cfg.get('AMQP_USERNAME', 'guest')
@@ -52,82 +66,62 @@ def load_config():
     cfg.ACTIVE_FRAME_TIMEOUT_NS = seconds2ns(cfg.ACTIVE_FRAME_TIMEOUT_S)
     cfg.HEALTH_CHECK_TIMEOUT_NS = seconds2ns(cfg.HEALTH_CHECK_TIMEOUT_S)
 
+    # GUID
+    cfg.CAMERA_TOKEN = cfg.AMQP_USERNAME + '_' + cfg.CAMERA_ID
+
+    # App State
+    App.td_frame = cfg.IDLE_FRAME_TIMEOUT_NS
+    App.td_health = cfg.IDLE_FRAME_TIMEOUT_NS
+    App.cfg = cfg
+
     return cfg
 
 
-class State:
+def wake_up(ts):
     """
-    Application state and variables.
+    Reset idle/sleep timer and wake up if required.
     """
-    class STATE(Enum):
-        """
-        Possible app states (awake, sleep, etc)
-        """
-        NONE = 0
-        SLEEP = 1
-        WAKE = 2
+    if App.state != STATE.WAKE:
+        logging.info('state - %s' % (STATE.WAKE))
+        App.td_frame = App.cfg.ACTIVE_FRAME_TIMEOUT_NS
+        App.state = STATE.WAKE
+        App.ts_next_frame = ts
 
-    @classmethod
-    def init(cls):
-        cls.cfg = load_config()
+    App.ts_stop_active_state = ts + App.cfg.IDLE_FRAME_TIMEOUT_NS
 
-        cls.td_frame = cls.cfg.IDLE_FRAME_TIMEOUT_NS
-        cls.td_health = cls.cfg.IDLE_FRAME_TIMEOUT_NS
-        cls.ts_next_frame = 0
-        cls.ts_next_healthcheck = 0
-        cls.ts_stop_active_state = 0
-        cls.state = cls.STATE.NONE
 
-    @classmethod
-    def wake_up(cls, ts):
-        """
-        Reset idle/sleep timer and wake up if required.
-        """
-        if cls.state != cls.STATE.WAKE:
-            logging.info('state - %s' % (cls.STATE.WAKE))
-            cls.td_frame = cls.cfg.ACTIVE_FRAME_TIMEOUT_NS
-            cls.state = cls.STATE.WAKE
-            cls.ts_next_frame = ts
-
-        cls.ts_stop_active_state = ts + cls.cfg.IDLE_FRAME_TIMEOUT_NS
-
-    @classmethod
-    def try_sleep(cls, ts):
-        """
-        Test idle/sleep timer and go to sleep if required
-        """
-        if cls.state != cls.STATE.SLEEP:
-            if ts > cls.ts_stop_active_state:
-                logging.info('state - %s' % (cls.STATE.SLEEP))
-                cls.td_frame = cls.cfg.IDLE_FRAME_TIMEOUT_NS
-                cls.state = cls.STATE.SLEEP
+def try_sleep(ts):
+    """
+    Test idle/sleep timer and go to sleep if required
+    """
+    if App.state != STATE.SLEEP:
+        if ts > App.ts_stop_active_state:
+            logging.info('state - %s' % (STATE.SLEEP))
+            App.td_frame = App.cfg.IDLE_FRAME_TIMEOUT_NS
+            App.state = STATE.SLEEP
 
 
 def try_read_and_pub_frame(ts):
     """
     Read a JPEG low-res frame from camera and publish on topic
     """
-    if ts > State.ts_next_frame:
-        encimg = cam().capture_jpeg_frame()
-        image = Image(b64image=base64.b64encode(encimg).decode('utf-8'),
-                      content_type='image/jpeg',
-                      timestamp_ns=time.time_ns())
+    if ts > App.ts_next_frame:
+        App.ts_next_frame = ts + App.td_frame
+
+        image = App.cam().capture_jpeg_frame()
+        image.source = config().CAMERA_TOKEN
 
         amqp().publish(routing_key=config().TOPIC_FRAME,
                        body=encode_message(image),
                        content_type='application/json')
-
-        State.ts_next_frame = ts + State.td_frame
 
 
 def try_read_and_pub_still(ts):
     """
     Read a JPEG high-res still from camera and publish on topic
     """
-    encimg = cam().capture_jpeg_still()
-    image = Image(b64image=base64.b64encode(encimg).decode('utf-8'),
-                  content_type='image/jpeg',
-                  timestamp_ns=time.time_ns())
+    image = App.cam().capture_jpeg_still()
+    image.source = config().CAMERA_TOKEN
 
     amqp().publish(routing_key=config().TOPIC_STILL,
                    body=encode_message(image),
@@ -138,14 +132,15 @@ def try_check_and_pub_health(ts):
     """
     Check health and send out hearthbeat.
     """
-    if ts > State.ts_next_healthcheck:
+    if ts > App.ts_next_healthcheck:
+        App.ts_next_healthcheck = ts + App.td_health
+
         health = device().get_health()
+        health.source = config().CAMERA_TOKEN
 
         amqp().publish(routing_key=config().TOPIC_HEARTBEAT,
                        body=encode_message(health),
                        content_type=encoded_content_type())
-
-        State.ts_next_healthcheck = ts + State.td_health
 
 
 def command_callback(ch, method, properties, body):
@@ -154,17 +149,20 @@ def command_callback(ch, method, properties, body):
     """
     try:
         ts = time.time_ns()
-        cmd_obj = decode_message(body)
+        obj = decode_message(body)
 
-        if cmd_obj is not None:
-            logging.info("object received: %s" % (cmd_obj))
+        if obj is not None:
+            if type(obj) == Command:
+                if obj.name == 'wake_up':
+                    logging.info("'wake_up' command received")
+                    wake_up(ts)
 
-            if type(cmd_obj) == Command:
-                if cmd_obj.name == 'wake_up':
-                    State.wake_up(ts)
-
-                elif cmd_obj.name == 'capture':
+                elif obj.name == 'capture':
+                    logging.info("'capture' command received")
                     try_read_and_pub_still(ts)
+
+            else:
+                logging.debug("message received: %s" % (obj))
 
     except Exception as e:
         logging.exception("cmd error: %s" % str(e))
@@ -172,7 +170,7 @@ def command_callback(ch, method, properties, body):
 
 def main():
     # load config and init
-    State.init()
+    load_config()
 
     # create camera command subscription
     amqp().subscribe(channel_number=2, callback=command_callback, routing_key=config().TOPIC_CMD)
@@ -190,7 +188,7 @@ def main():
         try_check_and_pub_health(ts)
 
         # state checks
-        State.try_sleep(ts)
+        try_sleep(ts)
 
 
 if __name__ == '__main__':

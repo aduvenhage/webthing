@@ -34,8 +34,7 @@ class User(UserMixin, db.Model):
 
     def check_topics(self, topic):
         """
-        Match a single topic string against any user routing keys.
-        topic: str: comma seperated routing keys
+        Match a single topic string against all user routing keys.
         """
         keys = self.routing_keys.split(',')
         if not keys:

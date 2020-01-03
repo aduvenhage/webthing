@@ -1,6 +1,9 @@
 import cv2
+import base64
+import time
 
 from utils.config import config
+from utils.messages import Image
 
 
 class CvCapture:
@@ -37,7 +40,11 @@ class CvCapture:
 
                 # encode low res frame to JPEG
                 result, encimg = cv2.imencode('.jpg', frame_lr, self.__encode_param)
-                return encimg
+
+                if encimg is not None:
+                    return Image(b64image=base64.b64encode(encimg).decode('utf-8'),
+                                 content_type='image/jpeg',
+                                 timestamp_ns=time.time_ns())
 
         return None
 
@@ -50,7 +57,11 @@ class CvCapture:
         if ret:
             # encode to JPEG
             result, encimg = cv2.imencode('.jpg', frame, self.__encode_param)
-            return encimg
+
+            if encimg is not None:
+                return Image(b64image=base64.b64encode(encimg).decode('utf-8'),
+                             content_type='image/jpeg',
+                             timestamp_ns=time.time_ns())
 
         return None
 
