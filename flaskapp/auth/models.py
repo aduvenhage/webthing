@@ -17,8 +17,10 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(120), index=True, unique=True)
     password_hash = db.Column(db.String(128))
     role = db.Column(db.String(64), index=True, default='guest')
+
     vhost = db.Column(db.String(64), index=True, default='/')
     domains = db.Column(db.String(256), index=True, default='#')
+    exchanges = db.Column(db.String(256), index=True, default='#')
 
     def set_password(self, password):
         """

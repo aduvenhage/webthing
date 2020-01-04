@@ -41,10 +41,14 @@ def login():
 @bp.route('/mq-user', methods=['POST'])
 @view_stats
 def mq_user():
-
+    """
+    RabbitMQ user auth
+    (see https://github.com/rabbitmq/rabbitmq-auth-backend-http)
+    """
     username = request.form.get('username', '')
     user = User.query.filter_by(username=username).first()
 
+    # authenticate user
     if user is None:
         current_app.logger.debug('MQ user denied (username=%s)' % (username))
         return "deny"
@@ -54,6 +58,7 @@ def mq_user():
         current_app.logger.debug('MQ user denied (username=%s)' % (username))
         return "deny"
 
+    # NOTE: users can have one of many roles that affect access (see https://www.rabbitmq.com/management.html#permissions) to management/UI
     if user.role:
         current_app.logger.debug('MQ user allowed (username=%s, role=%s)' % (username, user.role))
         return "allow " + str(user.role)
@@ -67,6 +72,10 @@ def mq_user():
 @bp.route('/mq-vhost', methods=['POST'])
 @view_stats
 def mq_vhost():
+    """
+    RabbitMQ vhost access
+    (see https://github.com/rabbitmq/rabbitmq-auth-backend-http)
+    """
     username = request.form.get('username', '')
     user = User.query.filter_by(username=username).first()
 
@@ -74,6 +83,7 @@ def mq_vhost():
         current_app.logger.debug('MQ user denied (username=%s)' % (username))
         return "deny"
 
+    # check for user access to this virtual host
     vhost = request.form.get('vhost', '')
     if user.vhost != vhost:
         current_app.logger.debug('MQ user/vhost denied (username=%s, vhost=%s)' % (username, vhost))
@@ -86,6 +96,10 @@ def mq_vhost():
 @bp.route('/mq-resource', methods=['POST'])
 @view_stats
 def mq_resource():
+    """
+    RabbitMQ resource access
+    (see https://github.com/rabbitmq/rabbitmq-auth-backend-http)
+    """
     username = request.form.get('username', '')
     user = User.query.filter_by(username=username).first()
 
@@ -93,18 +107,19 @@ def mq_resource():
         current_app.logger.debug('MQ user denied (username=%s)' % (username))
         return "deny"
 
+    # check for user access to this virtual host
     vhost = request.form.get('vhost', '')
     if user.vhost != vhost:
         current_app.logger.debug('MQ user/vhost denied (username=%s, vhost=%s)' % (username, vhost))
         return "deny"
 
-    # allow all resources if we got this far
-    resource = request.form.get('resource', '')
-    name = request.form.get('name', '')
+    # TODO: check user access to specific exchanges
+    resource_type = request.form.get('resource', '')
+    resource_name = request.form.get('name', '')
     permission = request.form.get('permission', '')
 
     current_app.logger.debug('MQ user/resource allowed (username=%s, vhost=%s, resource=%s, name=%s, permission=%s)'
-                             % (username, vhost, resource, name, permission))
+                             % (username, vhost, resource_type, resource_name, permission))
 
     return "allow"
 
@@ -112,6 +127,10 @@ def mq_resource():
 @bp.route('/mq-topic', methods=['POST'])
 @view_stats
 def mq_topic():
+    """
+    RabbitMQ topic access
+    (see https://github.com/rabbitmq/rabbitmq-auth-backend-http)
+    """
     username = request.form.get('username', '')
     user = User.query.filter_by(username=username).first()
 
@@ -119,6 +138,7 @@ def mq_topic():
         current_app.logger.debug('MQ user denied (username=%s)' % (username))
         return "deny"
 
+    # check for user access to this virtual host
     vhost = request.form.get('vhost', '')
     if user.vhost != vhost:
         current_app.logger.debug('MQ user/vhost denied (username=%s, vhost=%s)'
@@ -134,12 +154,12 @@ def mq_topic():
                                  % (username, routing_key, permission))
         return "deny"
 
-    # allow all resources if we got this far
-    resource = request.form.get('resource', '')
-    name = request.form.get('name', '')
+    # TODO: check user access to specific exchanges
+    topic_resource = request.form.get('resource', '') # should always be 'topic'
+    exchange_name = request.form.get('name', '')
     permission = request.form.get('permission', '')
 
     current_app.logger.debug('MQ user/topic allowed (username=%s, vhost=%s, resource=%s, name=%s, routing_key=%s, permission=%s)'
-                             % (username, vhost, resource, name, routing_key, permission))
+                             % (username, vhost, topic_resource, exchange_name, routing_key, permission))
 
     return "allow"
