@@ -55,7 +55,7 @@ def main(erase_all, file):
     u = User(username=cfg.AMQP_USERNAME,
              email='aduvenhage@gmail.com',
              role='administrator',
-             routing_keys='#')
+             domains='#')
 
     passw = cfg.AMQP_PASSWORD
     u.set_password(passw)

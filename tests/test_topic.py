@@ -10,6 +10,9 @@ class TestTopic(unittest.TestCase):
         pass
 
     def test_topic_matches(self):
+        """
+        Test plain topic to pattern matching.
+        """
         self.assertTrue(get_topic_match('aa.bb.*', 'aa.bb.cc'))
         self.assertTrue(get_topic_match('aa.*.cc', 'aa.bb.cc'))
         self.assertTrue(get_topic_match('*.bb.cc', 'aa.bb.cc'))
@@ -30,6 +33,9 @@ class TestTopic(unittest.TestCase):
         self.assertTrue(get_topic_match('aa.#.dd', 'aa.bb.cc.dd'))
 
     def test_topic_fails(self):
+        """
+        Make sure matching fails as expected.
+        """
         self.assertFalse(get_topic_match('aa.bb.*', 'aa.bb'))
         self.assertFalse(get_topic_match('*.*', 'aa'))
         self.assertFalse(get_topic_match('aa.bb.*.dd', 'aa.bb.dd'))

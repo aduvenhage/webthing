@@ -45,21 +45,23 @@ def mq_user():
     username = request.form.get('username', '')
     user = User.query.filter_by(username=username).first()
 
-    if user:
-        password = request.form.get('password', '')
+    if user is None:
+        current_app.logger.debug('MQ user denied (username=%s)' % (username))
+        return "deny"
 
-        if user.check_password(password):
-            if user.role:
-                current_app.logger.debug('MQ user allowed (username=%s, role=%s)' % (username, user.role))
-                return "allow " + str(user.role)
+    password = request.form.get('password', '')
+    if not user.check_password(password):
+        current_app.logger.debug('MQ user denied (username=%s)' % (username))
+        return "deny"
 
-            else:
-                current_app.logger.debug('MQ user allowed (username=%s)' % (username))
-                return "allow"
+    if user.role:
+        current_app.logger.debug('MQ user allowed (username=%s, role=%s)' % (username, user.role))
+        return "allow " + str(user.role)
 
-    current_app.logger.debug('MQ user denied (username=%s)' % (username))
+    else:
+        current_app.logger.debug('MQ user allowed (username=%s)' % (username))
+        return "allow"
 
-    return "deny"
 
 
 @bp.route('/mq-vhost', methods=['POST'])
@@ -68,17 +70,17 @@ def mq_vhost():
     username = request.form.get('username', '')
     user = User.query.filter_by(username=username).first()
 
-    if user:
-        vhost = request.form.get('vhost', '')
-        if user.vhost == vhost:
-            current_app.logger.debug('MQ user/vhost allowed (username=%s, vhost=%s)' % (username, vhost))
-            return "allow"
+    if user is None:
+        current_app.logger.debug('MQ user denied (username=%s)' % (username))
+        return "deny"
 
-        else:
-            current_app.logger.debug('MQ user/vhost denied (username=%s, vhost=%s)' % (username, vhost))
-            return "deny"
+    vhost = request.form.get('vhost', '')
+    if user.vhost != vhost:
+        current_app.logger.debug('MQ user/vhost denied (username=%s, vhost=%s)' % (username, vhost))
+        return "deny"
 
-    return "deny"
+    current_app.logger.debug('MQ user/vhost allowed (username=%s, vhost=%s)' % (username, vhost))
+    return "allow"
 
 
 @bp.route('/mq-resource', methods=['POST'])
@@ -87,18 +89,24 @@ def mq_resource():
     username = request.form.get('username', '')
     user = User.query.filter_by(username=username).first()
 
-    if user:
-        vhost = request.form.get('vhost', '')
-        resource = request.form.get('resource', '')
-        name = request.form.get('name', '')
-        permission = request.form.get('permission', '')
+    if user is None:
+        current_app.logger.debug('MQ user denied (username=%s)' % (username))
+        return "deny"
 
-        current_app.logger.debug('MQ user/resource allowed (username=%s, vhost=%s, resource=%s, name=%s)' 
-                                 % (username, vhost, resource, name))
+    vhost = request.form.get('vhost', '')
+    if user.vhost != vhost:
+        current_app.logger.debug('MQ user/vhost denied (username=%s, vhost=%s)' % (username, vhost))
+        return "deny"
 
-        return "allow"
+    # allow all resources if we got this far
+    resource = request.form.get('resource', '')
+    name = request.form.get('name', '')
+    permission = request.form.get('permission', '')
 
-    return "deny"
+    current_app.logger.debug('MQ user/resource allowed (username=%s, vhost=%s, resource=%s, name=%s, permission=%s)'
+                             % (username, vhost, resource, name, permission))
+
+    return "allow"
 
 
 @bp.route('/mq-topic', methods=['POST'])
@@ -107,16 +115,31 @@ def mq_topic():
     username = request.form.get('username', '')
     user = User.query.filter_by(username=username).first()
 
-    if user:
-        vhost = request.form.get('vhost', '')
-        resource = request.form.get('resource', '')
-        name = request.form.get('name', '')
-        permission = request.form.get('permission', '')
-        routing_key = request.form.get('routing_key', '')
+    if user is None:
+        current_app.logger.debug('MQ user denied (username=%s)' % (username))
+        return "deny"
 
-        current_app.logger.debug('MQ user/topic allowed (username=%s, vhost=%s, resource=%s, name=%s, routing_key=%s)' 
-                                 % (username, vhost, resource, name, routing_key))
+    vhost = request.form.get('vhost', '')
+    if user.vhost != vhost:
+        current_app.logger.debug('MQ user/vhost denied (username=%s, vhost=%s)'
+                                 % (username, vhost))
+        return "deny"
 
-        return "allow"
+    # NOTE: try to match auth topic key to user routing keys
+    routing_key = request.form.get('routing_key', '')
+    permission = request.form.get('permission', '')
+
+    if not user.check_routing_key(routing_key, permission):
+        current_app.logger.debug('MQ user/topic denied (username=%s, routing_key=%s, permission=%s)'
+                                 % (username, routing_key, permission))
+        return "deny"
+
+    # allow all resources if we got this far
+    resource = request.form.get('resource', '')
+    name = request.form.get('name', '')
+    permission = request.form.get('permission', '')
+
+    current_app.logger.debug('MQ user/topic allowed (username=%s, vhost=%s, resource=%s, name=%s, routing_key=%s, permission=%s)'
+                             % (username, vhost, resource, name, routing_key, permission))
 
     return "allow"

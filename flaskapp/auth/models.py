@@ -11,14 +11,14 @@ class User(UserMixin, db.Model):
     User details and password management
     """
 
-    # model attributes 
+    # model attributes
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), index=True, unique=True)
     email = db.Column(db.String(120), index=True, unique=True)
     password_hash = db.Column(db.String(128))
     role = db.Column(db.String(64), index=True, default='guest')
     vhost = db.Column(db.String(64), index=True, default='/')
-    routing_keys = db.Column(db.String(256), index=True, default='#')
+    domains = db.Column(db.String(256), index=True, default='#')
 
     def set_password(self, password):
         """
@@ -32,19 +32,29 @@ class User(UserMixin, db.Model):
         """
         return check_password_hash(self.password_hash, password)
 
-    def check_topics(self, topic):
+    def check_routing_key(self, key, permission):
         """
-        Match a single topic string against all user routing keys.
+        Match a single topic string (with given permission) against all user domains.
         """
-        keys = self.routing_keys.split(',')
-        if not keys:
+        domains = self.domains.split(',')
+        if not domains:
             return False
 
-        for key in keys:
-            key = key.lstrip().rstrip()
-            if get_topic_match(key, topic):
-                return True
+        # check matches for writing/publications
+        if permission == 'write':
+            for pattern in domains:
+                pattern = pattern.lstrip().rstrip()
+                if get_topic_match(pattern, key):
+                    return True
 
+        # check matches for reading/subscriptions
+        elif permission == 'read':
+            for pattern in domains:
+                pattern = pattern.lstrip().rstrip()
+                if get_topic_match(pattern, key):
+                    return True
+
+        # anything else fails auth
         return False
 
     def __repr__(self):
