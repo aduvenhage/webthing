@@ -113,10 +113,16 @@ def mq_resource():
         current_app.logger.debug('MQ user/vhost denied (username=%s, vhost=%s)' % (username, vhost))
         return "deny"
 
-    # TODO: check user access to specific exchanges
+    # check user access to specific exchanges
     resource_type = request.form.get('resource', '')
     resource_name = request.form.get('name', '')
     permission = request.form.get('permission', '')
+
+    if resource_type == 'exchange':
+        if not user.check_exchange(resource_name, permission):
+            current_app.logger.debug('MQ user/exchange denied (username=%s, exchange=%s, permission=%s)'
+                                     % (username, resource_name, permission))
+            return "deny"
 
     current_app.logger.debug('MQ user/resource allowed (username=%s, vhost=%s, resource=%s, name=%s, permission=%s)'
                              % (username, vhost, resource_type, resource_name, permission))
@@ -154,10 +160,15 @@ def mq_topic():
                                  % (username, routing_key, permission))
         return "deny"
 
-    # TODO: check user access to specific exchanges
-    topic_resource = request.form.get('resource', '') # should always be 'topic'
+    # check user access to specific exchanges
+    topic_resource = request.form.get('resource', '')  # should always be 'topic'
     exchange_name = request.form.get('name', '')
     permission = request.form.get('permission', '')
+
+    if not user.check_exchange(exchange_name, permission):
+        current_app.logger.debug('MQ user/exchange denied (username=%s, exchange=%s, permission=%s)'
+                                 % (username, exchange_name, permission))
+        return "deny"
 
     current_app.logger.debug('MQ user/topic allowed (username=%s, vhost=%s, resource=%s, name=%s, routing_key=%s, permission=%s)'
                              % (username, vhost, topic_resource, exchange_name, routing_key, permission))

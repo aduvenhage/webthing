@@ -42,16 +42,27 @@ class User(UserMixin, db.Model):
         if not domains:
             return False
 
-        # check matches for writing/publications
-        if permission == 'write':
+        # NOTE: using same matching on write/pub and read/sub permissions
+        if (permission == 'write' or permission == 'read'):
             for pattern in domains:
                 pattern = pattern.lstrip().rstrip()
                 if get_topic_match(pattern, key):
                     return True
 
-        # check matches for reading/subscriptions
-        elif permission == 'read':
-            for pattern in domains:
+        # anything else fails auth
+        return False
+
+    def check_exchange(self, key, permission):
+        """
+        Match a single exchange string (with given permission) against all user domains.
+        """
+        exchanges = self.exchanges.split(',')
+        if not exchanges:
+            return False
+
+        # NOTE: using same matching on write and read permissions
+        if (permission == 'write' or permission == 'read'):
+            for pattern in exchanges:
                 pattern = pattern.lstrip().rstrip()
                 if get_topic_match(pattern, key):
                     return True
