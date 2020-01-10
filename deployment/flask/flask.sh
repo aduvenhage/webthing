@@ -21,7 +21,7 @@ cd $SRC_DEPLOY_PATH
 sh deployment/flask/create_db.sh
 
 # setup env
-export FLASK_APP=flaskapp/app.py
+export FLASK_APP=webapp/app.py
 export FLASK_ENV=development
 export FLASK_DEBUG=1
 

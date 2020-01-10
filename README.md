@@ -1,8 +1,11 @@
+
 # Full Stack Rabbit Attack
+
 ## General
 - RabbitMQ
 -- backend-to-frontend (using MQTT)
 -- backend-to-device (using AMQP or MQTT)
+
 - Grafana server stats
 -- RabbitMQ integratition (via prometheus)
 -- Statsd integration (server stats via graphite)
@@ -100,9 +103,9 @@ User file format:
 
 Add user:
 ```
-from flaskapp.auth.models import User
-from flaskapp import create_app
-from flaskapp import db
+from webapp.auth.models import User
+from webapp import create_app
+from webapp import db
 
 app = create_app()
 app.app_context().push()

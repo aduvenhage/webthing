@@ -12,11 +12,15 @@ from .forms import LoginForm
 @bp.route('/login', methods=['GET', 'POST'])
 @view_stats
 def login():
+    """
+    User login page and API.
+    """
     if current_user.is_authenticated:
         return redirect(url_for('main.index'))
 
     form = LoginForm()
 
+    # try auth and redirect (on form POST)
     if form.validate_on_submit():
         username = form.username.data
         user = User.query.filter_by(username=username).first()
@@ -24,17 +28,21 @@ def login():
             flash('Invalid username or password')
             current_app.logger.debug('Invalid username or password (username=%s)' % (username))
 
+            # auth failed
             return redirect(url_for('auth.login'))
 
         login_user(user, remember=form.remember_me.data)
         current_app.logger.debug('Login successfull (username=%s)' % (username))
 
+        # auth success
         return redirect(url_for('main.index'))
 
+    # report form field errors
     if form.errors:
         flash(form.errors)
         current_app.logger.debug('Login failed. %s' % (str(form.errors)))
 
+    # return login form (on GET)
     return render_template('login.html', title='Sign In', form=form)
 
 
@@ -66,7 +74,6 @@ def mq_user():
     else:
         current_app.logger.debug('MQ user allowed (username=%s)' % (username))
         return "allow"
-
 
 
 @bp.route('/mq-vhost', methods=['POST'])

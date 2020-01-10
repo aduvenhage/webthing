@@ -2,9 +2,9 @@ import os
 import click
 import json
 
-from flaskapp.auth.models import User
-from flaskapp import create_app
-from flaskapp import db
+from webapp.auth.models import User
+from webapp import create_app
+from webapp import db
 
 from config import config
 
