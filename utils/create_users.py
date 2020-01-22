@@ -2,11 +2,10 @@ import os
 import click
 import json
 
-from webapp.auth.models import User
-from webapp import create_app
-from webapp import db
-
-from config import config
+from utils.models import User
+from utils.flask_app import create_app
+from utils.flask_app import db
+from utils.config import config
 
 
 @click.command()

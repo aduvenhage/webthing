@@ -4,8 +4,8 @@ from flask_login import current_user, login_user, logout_user
 from flask import render_template, flash, redirect, url_for, request, current_app
 
 from utils.view_stats import view_stats
+from utils.models import User
 
-from .models import User
 from .forms import LoginForm
 
 
