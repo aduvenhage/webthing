@@ -15,17 +15,3 @@ def create_app():
     app.register_blueprint(main_bp)
 
     return app
-
-
-def start():
-    """
-    Flask webapp.
-    Routes for:
-    - errors/
-    - auth/
-    - main/
-    """
-    create_app()
-
-
-start()

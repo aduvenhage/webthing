@@ -3,7 +3,7 @@ import click
 import json
 
 from utils.models import User
-from utils.flask_app import create_app
+from utils.flask_app import create_flask_app
 from utils.flask_app import db
 from utils.config import config
 
@@ -41,7 +41,7 @@ def main(erase_all, file):
     cfg.AMQP_USERNAME = cfg.get('AMQP_USERNAME', 'guest')
     cfg.AMQP_PASSWORD = cfg.get('AMQP_PASSWORD', 'guest')
 
-    app = create_app()
+    app = create_flask_app()
     app.app_context().push()
 
     # optionally clean out DB

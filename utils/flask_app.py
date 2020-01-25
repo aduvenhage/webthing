@@ -3,7 +3,7 @@ import os
 import logging
 from logging.handlers import RotatingFileHandler
 
-from flask import Flask, current_app
+from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager

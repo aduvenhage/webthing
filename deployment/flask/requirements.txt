@@ -8,3 +8,4 @@ flask-migrate
 flask-login 
 flask-bootstrap
 psutil
+uwsgi

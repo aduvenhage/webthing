@@ -30,7 +30,9 @@ export PYTHONPATH=$SRC_DEPLOY_PATH
 python utils/create_users.py --file deployment/flask/users.json
 
 # run app
-flask run --host=0.0.0.0 --port=5000
+#flask run --host=0.0.0.0 --port=5000
+#uwsgi -H venv/ --die-on-term --socket 0.0.0.0:5000 --protocol=http --module webapp.wsgi:app
+uwsgi -H venv/ --init $SRC_DEPLOY_PATH/config.ini
 
 # just wait
 sleep infinity
