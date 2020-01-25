@@ -6,10 +6,13 @@ def create_app():
 
     # register handlers/routes
     from webapp.errors import bp as errors_bp
-    app.register_blueprint(errors_bp)
+    app.register_blueprint(errors_bp,
+                           url_prefix='/error')
+
 
     from webapp.auth import bp as auth_bp
-    app.register_blueprint(auth_bp, url_prefix='/auth')
+    app.register_blueprint(auth_bp,
+                           url_prefix='/auth')
 
     from webapp.main import bp as main_bp
     app.register_blueprint(main_bp)

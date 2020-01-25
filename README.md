@@ -103,7 +103,7 @@ User file format:
 
 Add user:
 ```
-from utils.models import User
+from utils.flask_models import User
 from utils.flask_app import create_app
 from webapp import db
 

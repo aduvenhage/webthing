@@ -4,7 +4,8 @@ from flask_login import current_user, login_user, logout_user
 from flask import render_template, flash, redirect, url_for, request, current_app
 
 from utils.view_stats import view_stats
-from utils.models import User
+from utils.flask_models import User
+
 
 from .forms import LoginForm
 
@@ -43,7 +44,7 @@ def login():
         current_app.logger.debug('Login failed. %s' % (str(form.errors)))
 
     # return login form (on GET)
-    return render_template('login.html', title='Sign In', form=form)
+    return render_template('auth/login.html', title='Sign In', form=form)
 
 
 @bp.route('/mq-user', methods=['POST'])

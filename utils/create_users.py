@@ -2,9 +2,8 @@ import os
 import click
 import json
 
-from utils.models import User
-from utils.flask_app import create_flask_app
-from utils.flask_app import db
+from utils.flask_models import User
+from utils.flask_app import create_flask_app, db
 from utils.config import config
 
 

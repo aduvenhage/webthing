@@ -35,7 +35,10 @@ def create_flask_app():
         raise Exception('No value specified for SECRET_KEY')
 
     # create flask app
-    app = Flask(__name__)
+    app = Flask(__name__,
+                template_folder=os.path.join(cfg.base_dir, 'templates'),
+                static_folder=os.path.join(cfg.base_dir, 'static'))
+
     app.config.from_object(cfg)
 
     # setup logging
@@ -50,6 +53,8 @@ def create_flask_app():
 
     if cfg.DEBUG:
         app.logger.setLevel(logging.DEBUG)
+        app.config['EXPLAIN_TEMPLATE_LOADING'] = True
+
     else:
         app.logger.setLevel(logging.INFO)
 
