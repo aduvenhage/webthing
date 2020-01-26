@@ -2,7 +2,7 @@ import logging
 from functools import wraps
 
 from werkzeug.exceptions import HTTPException
-from flask import request
+from flask import request, make_response
 
 from utils.stats import stats
 
@@ -10,7 +10,7 @@ from utils.stats import stats
 logger = logging.getLogger(__file__)
 
 
-def view_incr_stats(route_name, method, status_code=None):
+def _incr_stats(route_name, method, status_code=None):
     """
     Increments relevant stats counters.
     """
@@ -21,7 +21,7 @@ def view_incr_stats(route_name, method, status_code=None):
     stats().incr("responses.{}.{}".format(route_name, method))
 
 
-def view_stats(func):
+def route_stats(func):
     """
     Decorator that ads request/response stats counters to view methods.
     """
@@ -32,21 +32,20 @@ def view_stats(func):
 
         try:
             with stats().timer('timer.{}'.format(route_name)):
-                # Call the view -- assumes view method returns (response, status_code)
                 response = func(*args, **kwargs)
+                response = make_response(response)
 
-            view_incr_stats(route_name, method,
-                            response[1] if len(response) > 1 else None)
+            _incr_stats(route_name, method, response.status_code)
 
             return response
 
         except HTTPException as e:
-            view_incr_stats(route_name, method, e.code)
+            _incr_stats(route_name, method, e.code)
             raise
 
-        except Exception as e:
+        except Exception:
             # assume internal server error
-            view_incr_stats(route_name, method, 500)
+            _incr_stats(route_name, method, 500)
             raise
 
     return _wrapped

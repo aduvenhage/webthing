@@ -1,4 +1,3 @@
-
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -76,7 +75,4 @@ class User(UserMixin, db.Model):
 
 @login.user_loader
 def load_user(id):
-    """
-    Utility function (used by flask_login) that helps load user object for HTTP session.
-    """
     return User.query.get(int(id))

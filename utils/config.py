@@ -14,20 +14,22 @@ class Config():
     """
 
     def __init__(self):
-
+        # load config defaults
         self.config = {}
-
-        # load base environment
         self.debug = self.get('DEBUG', False)
+        self.base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        self.get('DATABASE_URL', 'sqlite:///' + os.path.join(self.base_dir, 'webthing.db'))
+
+        # TODO: load 'config.ini' (overrides defaults)
+
+        # load config from environment (overrides defaults and 'config.init' values)
+        # NOTE: deployment should load .env file by default
         if self.debug:
             dotenv.load_dotenv('debug.env', override=True)
 
+        # test config
         if not self.get('WEBTHING', False):
             raise AttributeError("Failed to load valid config. Try specifying 'DEBUG=True' in environment.")
-
-        self.base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        self.default_db_url = 'sqlite:///' + os.path.join(self.base_dir, 'webthing.db')
-        self.get('DATABASE_URL', self.default_db_url)
 
     def get(self, key, default):
         """

@@ -1,17 +1,17 @@
-from . import bp
+from werkzeug.urls import url_parse
 
-from flask_login import current_user, login_user, logout_user
+from flask_login import current_user, login_user
 from flask import render_template, flash, redirect, url_for, request, current_app
 
-from utils.view_stats import view_stats
+from utils.route_stats import route_stats
 from utils.flask_models import User
 
-
 from .forms import LoginForm
+from . import bp
 
 
 @bp.route('/login', methods=['GET', 'POST'])
-@view_stats
+@route_stats
 def login():
     """
     User login page and API.
@@ -25,6 +25,7 @@ def login():
     if form.validate_on_submit():
         username = form.username.data
         user = User.query.filter_by(username=username).first()
+
         if user is None or not user.check_password(form.password.data):
             flash('Invalid username or password')
             current_app.logger.debug('Invalid username or password (username=%s)' % (username))
@@ -36,7 +37,11 @@ def login():
         current_app.logger.debug('Login successfull (username=%s)' % (username))
 
         # auth success
-        return redirect(url_for('main.index'))
+        next_page = request.args.get('next')
+        if not next_page or url_parse(next_page).netloc != '':
+            next_page = url_for('main.index')
+
+        return redirect(next_page)
 
     # report form field errors
     if form.errors:
@@ -48,7 +53,7 @@ def login():
 
 
 @bp.route('/mq-user', methods=['POST'])
-@view_stats
+@route_stats
 def mq_user():
     """
     RabbitMQ user auth
@@ -78,7 +83,7 @@ def mq_user():
 
 
 @bp.route('/mq-vhost', methods=['POST'])
-@view_stats
+@route_stats
 def mq_vhost():
     """
     RabbitMQ vhost access
@@ -102,7 +107,7 @@ def mq_vhost():
 
 
 @bp.route('/mq-resource', methods=['POST'])
-@view_stats
+@route_stats
 def mq_resource():
     """
     RabbitMQ resource access
@@ -139,7 +144,7 @@ def mq_resource():
 
 
 @bp.route('/mq-topic', methods=['POST'])
-@view_stats
+@route_stats
 def mq_topic():
     """
     RabbitMQ topic access
