@@ -1,6 +1,6 @@
 from werkzeug.urls import url_parse
 
-from flask_login import current_user, login_user
+from flask_login import current_user, login_user, logout_user
 from flask import render_template, flash, redirect, url_for, request, current_app
 
 from utils.route_stats import route_stats
@@ -50,6 +50,12 @@ def login():
 
     # return login form (on GET)
     return render_template('auth/login.html', title='Sign In', form=form)
+
+
+@bp.route('/logout')
+def logout():
+    logout_user()
+    return redirect(url_for('main.index'))
 
 
 @bp.route('/mq-user', methods=['POST'])

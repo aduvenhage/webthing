@@ -2,7 +2,6 @@ import psutil
 import platform
 import time
 
-from utils.config import config
 from utils.messages import DeviceHealth
 
 

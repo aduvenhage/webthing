@@ -1,9 +1,7 @@
 import json
-from pydoc import locate
 
 
 class Message:
-
     message_type_dict = {}
 
     @classmethod
@@ -15,8 +13,11 @@ class Message:
 
     def encode(self):
         """
-        Joins the message class/type with the message atributes, encode to JSON and return.
-        NOTE: class/type is used to construct correct message sub-type on decode.
+        Joins the message class/type with the message atributes,
+        encode to JSON and return.
+
+        NOTE: class/type is used to construct correct message sub-type
+        on decode.
         """
         return json.dumps({
             'class': self.message_type(),
