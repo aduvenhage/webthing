@@ -1,0 +1,5 @@
+click 
+python-dotenv 
+psutil
+pika
+opencv-python-headless

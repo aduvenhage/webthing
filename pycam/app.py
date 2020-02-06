@@ -1,14 +1,14 @@
 import time
-import json
 import logging
 from enum import Enum
 
 from utils.config import config
 from utils.amqp import amqp
 from utils.cvcam import cvcap
-from utils.stats import stats
 from utils.health import device
-from utils.messages import *
+from utils.messages import encode_message, encoded_content_type
+from utils.messages import decode_message
+from utils.messages import Command
 
 
 class STATE(Enum):
@@ -49,14 +49,10 @@ def load_config():
     cfg.AMQP_USERNAME = cfg.get('AMQP_USERNAME', 'guest')
     cfg.AMQP_PASSWORD = cfg.get('AMQP_PASSWORD', 'guest')
 
-    # topic
-    cfg.get('CAMERA_ID', 'CAM0')
-    cfg.get('TOPIC_FRAME', "%s.%s.frame.jpeg" % (cfg.AMQP_USERNAME, cfg.CAMERA_ID))
-    cfg.get('TOPIC_STILL', "%s.%s.still.jpeg" % (cfg.AMQP_USERNAME, cfg.CAMERA_ID))
-    cfg.get('TOPIC_HEARTBEAT', "%s.%s.heartbeat" % (cfg.AMQP_USERNAME, cfg.CAMERA_ID))
-    cfg.get('TOPIC_CMD', "%s.%s.control" % (cfg.AMQP_USERNAME, cfg.CAMERA_ID))
-
     # camera config
+    cfg.get('CAMERA_ID', 'CAM0')
+    cfg.get('CAMERA_LOCATION', '')
+
     cfg.IDLE_FRAME_TIMEOUT_S = 4.0
     cfg.ACTIVE_FRAME_TIMEOUT_S = 0.2
     cfg.HEALTH_CHECK_TIMEOUT_S = 5.0
@@ -68,6 +64,12 @@ def load_config():
 
     # GUID
     cfg.CAMERA_TOKEN = cfg.AMQP_USERNAME + '_' + cfg.CAMERA_ID
+
+    # topics
+    cfg.get('TOPIC_FRAME', "%s.%s.frame.jpeg" % (cfg.AMQP_USERNAME, cfg.CAMERA_ID))
+    cfg.get('TOPIC_STILL', "%s.%s.still.jpeg" % (cfg.AMQP_USERNAME, cfg.CAMERA_ID))
+    cfg.get('TOPIC_HEARTBEAT', "%s.%s.heartbeat" % (cfg.AMQP_USERNAME, cfg.CAMERA_ID))
+    cfg.get('TOPIC_CMD', "%s.%s.control" % (cfg.AMQP_USERNAME, cfg.CAMERA_ID))
 
     # App State
     App.td_frame = cfg.IDLE_FRAME_TIMEOUT_NS

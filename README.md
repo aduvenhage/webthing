@@ -78,8 +78,8 @@ flask db upgrade
 
 ### User setup
 - currently done at server container start
-- look at `deployment/flask/flask.sh`
-- `python utils/create_users.py --file deployment/flask/users.json`
+- look at `deployment/webapp/webapp.sh`
+- `python utils/create_users.py --file deployment/webapp/users.json`
 
 User file format:
 ```

@@ -51,7 +51,7 @@
             "args": [
                 "--erase_all",
                 "--file",
-                "deployment/flask/users.json"
+                "deployment/webapp/users.json"
             ]
         }
     ]

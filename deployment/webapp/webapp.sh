@@ -18,7 +18,7 @@ sleep 5s
 cd $SRC_DEPLOY_PATH
 
 # create DB
-sh deployment/flask/create_db.sh
+sh deployment/webapp/create_db.sh
 
 # setup env
 export FLASK_APP=webapp/app.py
@@ -27,12 +27,12 @@ export FLASK_DEBUG=1
 
 # create user(s)
 export PYTHONPATH=$SRC_DEPLOY_PATH
-python utils/create_users.py --file deployment/flask/users.json
+python utils/create_users.py --file deployment/webapp/users.json
 
 # run app
 #flask run --host=0.0.0.0 --port=5000
 #uwsgi -H venv/ --die-on-term --socket 0.0.0.0:5000 --protocol=http --module webapp.wsgi:app
-uwsgi -H venv/ --init $SRC_DEPLOY_PATH/config.ini
+uwsgi -H venv/ --ini $SRC_DEPLOY_PATH/config.ini
 
 # just wait
 sleep infinity
