@@ -48,7 +48,7 @@ class CvCapture:
 
         return None
 
-    def capture_jpeg_still(self, quality=90):
+    def capture_jpeg_still(self):
         """
         Capture high-res still
         """

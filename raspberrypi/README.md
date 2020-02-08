@@ -125,7 +125,21 @@ to run as root
 
 
 
-OpenCV setup:
+OpenCV (CV2) install:
+=====================
+https://www.pyimagesearch.com/2019/09/16/install-opencv-4-on-raspberry-pi-4-and-raspbian-buster/
+
+- sudo apt-get install build-essential cmake pkg-config
+- sudo apt-get install libjpeg-dev libtiff5-dev libjasper-dev libpng-dev
+- sudo apt-get install libavcodec-dev libavformat-dev libswscale-dev libv4l-dev
+- sudo apt-get install python3-dev
+- pip install opencv-python-headless==4.1.0.25
+- pip install opencv-contrib-python-headless==4.1.0.25
+
+
+
+
+OpenCV Build:
 ===========
 
 - git clone https://github.com/opencv/opencv.git
@@ -137,21 +151,6 @@ OpenCV setup:
 
 Example:
 - https://github.com/BVLC/caffe/wiki/OpenCV-3.3-Installation-Guide-on-Ubuntu-16.04
-
-
-
-
-OpenCV (CV2) install:
-=====================
-
-- sudo apt install libatlas3-base libwebp6 libtiff5 libjasper1 libilmbase23 libopenexr23 libavcodec58 libavformat58 libavutil56 libswscale5 libgtk-3-0 libpangocairo-1.0-0 libpango-1.0-0 libatk1.0-0 libcairo-gobject2 libcairo2 libgdk-pixbuf2.0-0 
-
-- pip install opencv-python-headless
-- pip install opencv-contrib-python-headless
-
-
-
-
 
 
 
