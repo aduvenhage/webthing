@@ -10,7 +10,7 @@ event_msg = array('B', [1, 11, 83])
 
 
 def check_msg(msg):
-    return msg[-1] == sum(msg[:-1])
+    return msg[-1] == sum(msg[:-1]) % 256
 
 
 def get_msg(input, n):
@@ -38,9 +38,30 @@ def process_sensor_msg(input):
     msg = get_msg(input, 13)
     if msg:
         zone_id = msg[5]
-        zone_name = zones.get(zone_id, '')
+        state = msg[9]
+        battery_level = msg[10]
 
-        print('e - %s - [%d=%s]' % (msg, zone_id, zone_name))
+        zone_name = zones.get(zone_id, '')
+        desc = ''
+
+        if state & 0x08 == 0x08:
+            desc += ', bty_low=%d' % battery_level
+
+        else:
+            desc += ', bty=%d' % battery_level
+
+        if state & 0x71 == 0x71:
+            desc += ', event=open'
+
+        else:
+            desc += ', event=closed'
+
+        print('e - %s - [%d=%s%s]' % (
+                msg,
+                zone_id,
+                zone_name,
+                desc
+             ))
 
 
 def main():
