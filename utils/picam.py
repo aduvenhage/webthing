@@ -61,21 +61,21 @@ class PiCapture:
             return None
 
 
-__pi_capture = None
+_pi_capture = None
 
 
 def picap():
     """
     Creates PiCam capture instance
     """
-    global __pi_capture
+    global _pi_capture
 
-    if not __pi_capture:
+    if not _pi_capture:
         cfg = config()
         cfg.get('JPEG_QUALITY', 90)
         cfg.get('VIDEO_WIDTH', 320)
 
-        __pi_capture = PiCapture(jpeg_quality=cfg.JPEG_QUALITY,
+        _pi_capture = PiCapture(jpeg_quality=cfg.JPEG_QUALITY,
                                  video_width=cfg.VIDEO_WIDTH)
 
-    return __pi_capture
+    return _pi_capture

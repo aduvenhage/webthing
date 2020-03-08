@@ -2,11 +2,13 @@
 import serial
 from array import array
 from zones import zones
+from utils.slackmsg import slack_messenger
 
 
 ser = serial.Serial('/dev/ttyUSB0', 9600, timeout=0)
 status_msg = array('B', [1, 4, 83])
 event_msg = array('B', [1, 11, 83])
+slack = slack_messenger()
 
 
 def check_msg(msg):
@@ -31,6 +33,7 @@ def process_status_msg(input):
     msg = get_msg(input, 6)
     if msg:
         # ignore status message
+        # print('s - [%s]' % msg)
         pass
 
 
@@ -41,8 +44,10 @@ def process_sensor_msg(input):
         state = msg[9]
         battery_level = msg[10]
 
-        zone_name = zones.get(zone_id, '')
-        desc = ''
+        zone = zones.get(zone_id)
+        name = zone.get('name', '')
+        is_alert = zone.get('alert', False)
+        desc = '%s (%d)' % (name, zone_id)
 
         if state & 0x08 == 0x08:
             desc += ', bty_low=%d' % battery_level
@@ -52,16 +57,25 @@ def process_sensor_msg(input):
 
         if state & 0x71 == 0x71:
             desc += ', event=open'
+            is_open = True
 
         else:
             desc += ', event=closed'
+            is_open = False
 
-        print('e - %s - [%d=%s%s]' % (
-                msg,
-                zone_id,
-                zone_name,
-                desc
-             ))
+        print('e - %s - [%s]' % (desc, msg))
+
+        if is_open and is_alert:
+            slack.add_message({
+                'channel': '#alerts',
+                'text': desc
+            })
+
+        else:
+            slack.add_message({
+                'channel': '#random',
+                'text': desc
+            })
 
 
 def main():
