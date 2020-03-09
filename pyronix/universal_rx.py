@@ -1,7 +1,10 @@
 
 import serial
+import logging
 from array import array
 from zones import zones
+
+from utils.config import config
 from utils.slackmsg import slack_messenger
 
 
@@ -33,8 +36,7 @@ def process_status_msg(input):
     msg = get_msg(input, 6)
     if msg:
         # ignore status message
-        # print('s - [%s]' % msg)
-        pass
+        logging.debug('s - [%s]', msg)
 
 
 def process_sensor_msg(input):
@@ -63,7 +65,7 @@ def process_sensor_msg(input):
             desc += ', event=closed'
             is_open = False
 
-        print('e - %s - [%s]' % (desc, msg))
+        logging.info('e - %s - [%s]', desc, msg)
 
         if is_open and is_alert:
             slack.add_message({
@@ -79,6 +81,9 @@ def process_sensor_msg(input):
 
 
 def main():
+    cfg = config()
+    logging.basicConfig(format='%(asctime)s [%(levelname)s]: %(message)s', level=logging.DEBUG)
+
     input = array('B')
     while True:
         # read data from port
@@ -100,7 +105,7 @@ def main():
 
             # just scan through data if nothing matches
             else:
-                print('u - %s' % (input))
+                logging.debug('u - %s', input)
                 input.pop(0)
 
 

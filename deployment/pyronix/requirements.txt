@@ -1,0 +1,6 @@
+click 
+python-dotenv 
+psutil
+pika
+serial
+slackclient
