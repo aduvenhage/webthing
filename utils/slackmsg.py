@@ -38,32 +38,30 @@ class SlackMessenger:
                 **self._message
             )
 
+            # raise and exception on any error
+            response.validate()
+
+            logging.debug('Message sent on %s. %s', self._channel, self._message)
+            self._message = None
+
         except slack.errors.SlackApiError as e:
-            response = e.response
-
-        # check for errors
-        if response["ok"] is False:
-            # back off and retry if rate limited
-            if response["error"]:
-                self._msg_backoff_s = 4
-                logging.warning('Slack request error. %s', response['error'])
-
-            elif response["headers"]["Retry-After"]:
-                self._msg_backoff_s = int(response["headers"]["Retry-After"])
+            delay = e.response.headers.get('Retry-After', 0)
+            if delay > 0:
                 logging.warning('Slack API rate limited.')
+                self._msg_backoff_s = delay
+
+            elif e.response['error']:
+                logging.warning('Slack request error. %s', e.response['error'])
+                self._msg_backoff_s = 4
 
             else:
-                self._msg_backoff_s = 4
                 logging.warning('Slack request error. %s', 'Unknown error.')
+                self._msg_backoff_s = 4
 
             self._error_count += 1
             if self._error_count > 3:
                 logging.error('Too many errors. Message dropped.')
                 self._message = None
-
-        else:
-            logging.debug('Message sent on %s. %s', self._channel, self._message)
-            self._message = None
 
     def _run(self):
         """

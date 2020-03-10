@@ -7,11 +7,12 @@ from zones import zones
 from utils.config import config
 from utils.slackmsg import slack_messenger
 
-
+cfg = config()
 ser = serial.Serial('/dev/ttyUSB0', 9600, timeout=0)
 status_msg = array('B', [1, 4, 83])
 event_msg = array('B', [1, 11, 83])
 slack = slack_messenger()
+logging.basicConfig(format='%(asctime)s [%(levelname)s]: %(message)s', level=logging.DEBUG)
 
 
 def check_msg(msg):
@@ -65,7 +66,7 @@ def process_sensor_msg(input):
             desc += ', event=closed'
             is_open = False
 
-        logging.info('e - %s - [%s]', desc, msg)
+        logging.debug('e - %s - [%s]', desc, msg)
 
         if is_open and is_alert:
             slack.add_message({
@@ -73,7 +74,7 @@ def process_sensor_msg(input):
                 'text': desc
             })
 
-        else:
+        elif cfg.DEBUG:
             slack.add_message({
                 'channel': '#random',
                 'text': desc
@@ -81,9 +82,6 @@ def process_sensor_msg(input):
 
 
 def main():
-    cfg = config()
-    logging.basicConfig(format='%(asctime)s [%(levelname)s]: %(message)s', level=logging.DEBUG)
-
     input = array('B')
     while True:
         # read data from port
@@ -106,6 +104,12 @@ def main():
             # just scan through data if nothing matches
             else:
                 logging.debug('u - %s', input)
+                if cfg.DEBUG:
+                    slack.add_message({
+                        'channel': '#random',
+                        'text': 'u - ' + str(input)
+                    })
+
                 input.pop(0)
 
 
