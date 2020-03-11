@@ -1,6 +1,7 @@
 import os
 import dotenv
 import logging
+from logging.handlers import RotatingFileHandler
 
 
 class Config():
@@ -27,6 +28,9 @@ class Config():
         # NOTE: deployment should load .env file by default
         if self.debug:
             dotenv.load_dotenv('debug.env', override=True)
+
+        self.get('APP_NAME', __name__)
+        self.get('LOG_FILENAME', self.APP_NAME + '.log')
 
         # test config
         if not self.get('WEBTHING', False):
@@ -87,16 +91,37 @@ def config():
     return __the_config
 
 
-def get_logger(name):
-    """
-    Returns named logger.
-    """
+def setup_logger_handlers(logger):
     cfg = config()
+    if len(logger.handlers) == 0:
+        # setup rotating file based logs
+        if not os.path.exists('logs'):
+            os.mkdir('logs')
+
+        file_handler = RotatingFileHandler(
+            os.path.join('logs', cfg.LOG_FILENAME),
+            maxBytes=1024*64,
+            backupCount=64
+        )
+
+        file_handler.setFormatter(
+            logging.Formatter('%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]')
+        )
+
+        file_handler.setLevel(logging.DEBUG)
+        logger.addHandler(file_handler)
+
+
+def get_logger(name):
+    cfg = config()
+
     logger = logging.getLogger(name)
     if cfg.debug:
         logger.setLevel(logging.DEBUG)
 
     else:
         logger.setLevel(logging.INFO)
+
+    setup_logger_handlers(logger)
 
     return logger

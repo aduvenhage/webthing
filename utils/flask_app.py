@@ -8,7 +8,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
 
-from utils.config import config
+from utils.config import config, setup_logger_handlers
 
 
 # globals
@@ -24,8 +24,6 @@ def create_flask_app():
 
     # get app config 
     cfg = config()
-    cfg.get('APP_NAME', 'Webthing')
-    cfg.get('LOG_FILENAME', cfg.APP_NAME + '.log')
 
     cfg.SQLALCHEMY_DATABASE_URI = cfg.DATABASE_URL
     cfg.SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -42,14 +40,7 @@ def create_flask_app():
     app.config.from_object(cfg)
 
     # setup logging
-    if not os.path.exists('logs'):
-        os.mkdir('logs')
-
-    file_handler = RotatingFileHandler(os.path.join('logs', cfg.LOG_FILENAME), maxBytes=10240, backupCount=10)
-    file_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'))
-    file_handler.setLevel(logging.DEBUG)
-
-    app.logger.addHandler(file_handler)
+    setup_logger_handlers(app.logger)
 
     if cfg.debug:
         app.logger.setLevel(logging.DEBUG)
