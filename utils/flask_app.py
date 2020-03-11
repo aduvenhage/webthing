@@ -51,7 +51,7 @@ def create_flask_app():
 
     app.logger.addHandler(file_handler)
 
-    if cfg.DEBUG:
+    if cfg.debug:
         app.logger.setLevel(logging.DEBUG)
         app.config['EXPLAIN_TEMPLATE_LOADING'] = True
 

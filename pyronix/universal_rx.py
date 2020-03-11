@@ -1,10 +1,9 @@
 
 import serial
-import logging
 from array import array
 from zones import zones
 
-from utils.config import config
+from utils.config import config, get_logger
 from utils.slackmsg import slack_messenger
 
 cfg = config()
@@ -12,7 +11,7 @@ ser = serial.Serial('/dev/ttyUSB0', 9600, timeout=0)
 status_msg = array('B', [1, 4, 83])
 event_msg = array('B', [1, 11, 83])
 slack = slack_messenger()
-logging.basicConfig(format='%(asctime)s [%(levelname)s]: %(message)s', level=logging.DEBUG)
+logger = get_logger(__name__)
 
 
 def check_msg(msg):
@@ -37,7 +36,7 @@ def process_status_msg(input):
     msg = get_msg(input, 6)
     if msg:
         # ignore status message
-        logging.debug('s - [%s]', msg)
+        logger.debug('s - [%s]', msg)
 
 
 def process_sensor_msg(input):
@@ -66,7 +65,7 @@ def process_sensor_msg(input):
             desc += ', event=closed'
             is_open = False
 
-        logging.debug('e - %s - [%s]', desc, msg)
+        logger.debug('e - %s - [%s]', desc, msg)
 
         if is_open and is_alert:
             slack.add_message({
@@ -74,7 +73,7 @@ def process_sensor_msg(input):
                 'text': desc
             })
 
-        elif cfg.DEBUG:
+        elif cfg.debug:
             slack.add_message({
                 'channel': '#random',
                 'text': desc
@@ -103,8 +102,8 @@ def main():
 
             # just scan through data if nothing matches
             else:
-                logging.debug('u - %s', input)
-                if cfg.DEBUG:
+                logger.debug('u - %s', input)
+                if cfg.debug:
                     slack.add_message({
                         'channel': '#random',
                         'text': 'u - ' + str(input)

@@ -4,9 +4,15 @@ import time
 
 from utils.config import config
 from utils.messages import Image
+from utils.abc_cam import Camera
 
 
-class CvCapture:
+class CvCapture(Camera):
+    """
+    OpenCV camera interface.
+    See utils.abc_cam
+    """
+
     def __init__(self, device=0, video_width=320, jpeg_quality=90):
         """
         Create capture device

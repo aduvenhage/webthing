@@ -1,8 +1,7 @@
 import time
-import logging
 from enum import Enum
 
-from utils.config import config
+from utils.config import config, get_logger
 from utils.amqp import amqp
 from utils.cvcam import cvcap
 from utils.health import device
@@ -43,7 +42,7 @@ def load_config():
     Load device config from environment.
     """
     cfg = config()
-    logging.basicConfig(format='%(asctime)s [%(levelname)s]: %(message)s', level=logging.INFO)
+    cfg.logger = get_logger(__name__)
 
     # user details
     cfg.AMQP_USERNAME = cfg.get('AMQP_USERNAME', 'guest')
@@ -84,7 +83,7 @@ def wake_up(ts):
     Reset idle/sleep timer and wake up if required.
     """
     if App.state != STATE.WAKE:
-        logging.info('state - %s' % (STATE.WAKE))
+        App.cfg.logger.info('state - %s' % (STATE.WAKE))
         App.td_frame = App.cfg.ACTIVE_FRAME_TIMEOUT_NS
         App.state = STATE.WAKE
         App.ts_next_frame = ts
@@ -98,7 +97,7 @@ def try_sleep(ts):
     """
     if App.state != STATE.SLEEP:
         if ts > App.ts_stop_active_state:
-            logging.info('state - %s' % (STATE.SLEEP))
+            App.cfg.logger.info('state - %s' % (STATE.SLEEP))
             App.td_frame = App.cfg.IDLE_FRAME_TIMEOUT_NS
             App.state = STATE.SLEEP
 
@@ -156,18 +155,18 @@ def command_callback(ch, method, properties, body):
         if obj is not None:
             if type(obj) == Command:
                 if obj.name == 'wake_up':
-                    logging.info("'wake_up' command received")
+                    App.cfg.logger.info("'wake_up' command received")
                     wake_up(ts)
 
                 elif obj.name == 'capture':
-                    logging.info("'capture' command received")
+                    App.cfg.logger.info("'capture' command received")
                     try_read_and_pub_still(ts)
 
             else:
-                logging.debug("message received: %s" % (obj))
+                App.cfg.logger.debug("message received: %s" % (obj))
 
     except Exception as e:
-        logging.exception("cmd error: %s" % str(e))
+        App.cfg.logger.exception("cmd error: %s" % str(e))
 
 
 def main():

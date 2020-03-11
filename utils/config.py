@@ -1,5 +1,6 @@
 import os
 import dotenv
+import logging
 
 
 class Config():
@@ -30,6 +31,9 @@ class Config():
         # test config
         if not self.get('WEBTHING', False):
             raise AttributeError("Failed to load valid config. Try specifying 'DEBUG=True' in environment.")
+
+        # configure logging defaults
+        logging.basicConfig(format='%(asctime)s [%(levelname)s]: %(message)s', level=logging.DEBUG)
 
     def get(self, key, default):
         """
@@ -81,3 +85,18 @@ def config():
         __the_config = Config()
 
     return __the_config
+
+
+def get_logger(name):
+    """
+    Returns named logger.
+    """
+    cfg = config()
+    logger = logging.getLogger(name)
+    if cfg.debug:
+        logger.setLevel(logging.DEBUG)
+
+    else:
+        logger.setLevel(logging.INFO)
+
+    return logger

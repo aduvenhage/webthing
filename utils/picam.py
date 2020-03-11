@@ -5,9 +5,14 @@ import time
 
 from utils.config import config
 from utils.messages import Image
+from utils.abc_cam import Camera
 
 
-class PiCapture:
+class PiCapture(Camera):
+    """
+    Raspberry Pi camera interface.
+    See utils.abc_cam
+    """
 
     def __init__(self, video_width=320, jpeg_quality=90):
         """
