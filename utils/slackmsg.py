@@ -16,7 +16,7 @@ class SlackMessenger:
         """
         Create slack messenger thread.
         """
-        self._msg_queue = queue.Queue()
+        self._messages = queue.Queue()
         self._api_token = api_token
         self._slack_client = slack.WebClient(token=api_token)
 
@@ -32,6 +32,9 @@ class SlackMessenger:
         """
         Try to send current message.
         """
+        if self._messages is None:
+            raise Exception('Invalid/Null message.')
+
         try:
             response = self._slack_client.chat_postMessage(
                 channel=self._channel,
@@ -71,8 +74,8 @@ class SlackMessenger:
 
         while True:
             # grab next message from user queue if not busy
-            if self._message is None and not self._msg_queue.empty():
-                self._message = self._msg_queue.get(timeout=1)
+            if self._message is None and not self._messages.empty():
+                self._message = self._messages.get(timeout=1)
                 self._channel = self._message.pop('channel')
                 self._error_count = 0
                 self._msg_backoff_s = 0
@@ -93,13 +96,13 @@ class SlackMessenger:
         """
         Add message to queue of messages to be sent out.
         """
-        self._msg_queue.put(message)
+        self._messages.put(message)
 
     def queue_size(self):
         """
         Returns number of messages waiting to be sent
         """
-        return len(self._msg_queue)
+        return len(self._messages)
 
 
 __slack_messenger = None

@@ -22,7 +22,7 @@ class Config():
         self.base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         self.get('DATABASE_URL', 'sqlite:///' + os.path.join(self.base_dir, 'webthing.db'))
 
-        # TODO: load 'config.ini' (overrides defaults)
+        # TODO: load 'config.ini' (should override defaults)
 
         # load config from environment (overrides defaults and 'config.init' values)
         # NOTE: deployment should load .env file by default
