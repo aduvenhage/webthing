@@ -1,3 +1,4 @@
+
 #!/bin/bash
 
 # verify environment variables
@@ -11,12 +12,21 @@ echo Root folder content:
 ls
 
 # go to source folder
-cd ~/webthing
+cd /home/pi/webthing
 
 # setup env
-export SLACK_TOKEN=xox-
+export DEBUG=True
+export PYTHONPATH=.
+export SLACK_TOKEN=xoxb +++++ 
+. venv/bin/activate
+
 
 # run app
 python pyronix/app.py
 
+# just wait
+sleep infinity
+
 exit 1
+
+
