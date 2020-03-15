@@ -2,5 +2,5 @@ click
 python-dotenv 
 psutil
 pika
-serial
+pyserial
 slackclient
