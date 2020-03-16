@@ -14,10 +14,9 @@ ls
 # go to source folder
 cd $SRC_DEPLOY_PATH
 export PYTHONPATH=$SRC_DEPLOY_PATH
-export SLACK_TOKEN=xoxb +++++ 
 
 # run app
-python pyronix/app.py
+python pycam/app.py
 
 # just wait
 sleep infinity
