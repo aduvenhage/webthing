@@ -18,9 +18,6 @@ export PYTHONPATH=$SRC_DEPLOY_PATH
 # run app
 python pycam/app.py
 
-# just wait
-sleep infinity
-
 exit 1
 
 

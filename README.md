@@ -16,7 +16,19 @@ The `docker-compose.yaml` and `.env` files are in the source folder root.  Conta
 `.env` file is used for both build time and runtime variables.
 
 ### Install docker-compose (Linux / Ubuntu / Cloud VM)
-Locally
+
+See:
+https://dev.to/rohansawant/installing-docker-and-docker-compose-on-the-raspberry-pi-in-5-simple-steps-3mgl
+
+```
+sudo apt-get install -y libffi-dev libssl-dev
+sudo apt-get install -y python3 python3-pip
+sudo apt-get remove python-configparser
+sudo pip3 install docker-compose
+```
+
+or,
+Locally:
 ```
 sudo apt-get install curl docker.io
 sudo curl -L "https://github.com/docker/compose/releases/download/1.23.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
@@ -25,7 +37,8 @@ sudo usermod -a -G docker $USER
 ```
 **IMPORTANT**: Next, log out and in again in order for user-group permissions to be applied.
 
-Inside container
+or,
+Inside container:
 ```
 curl -L "https://github.com/docker/compose/releases/download/1.24.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 chmod +x /usr/local/bin/docker-compose

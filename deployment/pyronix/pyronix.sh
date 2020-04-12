@@ -19,9 +19,6 @@ export SLACK_TOKEN=xoxb +++++
 # run app
 python pyronix/app.py
 
-# just wait
-sleep infinity
-
 exit 1
 
 

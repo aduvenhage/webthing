@@ -1,7 +1,7 @@
 ###########################################################################################
 #
 # USAGE:
-# build with: docker build --no-cache -t arnoduvenhage/nginx-base .
+# build with: docker build --no-cache -t arnoduvenhage/nginx-base -f Dockerbase .
 # upload with: docker push arnoduvenhage/nginx-base
 # 
 ###########################################################################################
