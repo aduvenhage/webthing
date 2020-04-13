@@ -1,7 +1,7 @@
 #!/bin/bash
 
 export DEPLOY_PATH=$PWD
-export ROOT_PATH=$PWD/../
+export ROOT_PATH=$PWD/../../
 
 # install basic dependencies
 apt update

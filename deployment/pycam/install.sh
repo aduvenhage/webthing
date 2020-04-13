@@ -1,7 +1,7 @@
 #!/bin/bash
 
 export DEPLOY_PATH=$PWD
-export ROOT_PATH=$PWD/../
+export ROOT_PATH=$PWD/../..
 
 # install basic dependencies
 apt update
@@ -16,3 +16,4 @@ source venv/bin/activate
 
 # install app dependencies
 pip install -r $DEPLOY_PATH/requirements.txt
+deactivate
