@@ -1,7 +1,7 @@
 
 #!/bin/bash
+# Run this from source root folder -- assumes CWD is webthing (source route)
 
-# verify environment variables
 echo
 echo Bash Environment:
 printenv

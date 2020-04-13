@@ -1,0 +1,14 @@
+[Unit]
+Description=PyCam
+After=network.target
+
+[Service]
+ExecStart=sh deployment/pycam/pycam.sh
+WorkingDirectory=/home/pi/webthing
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+User=pi
+
+[Install]
+WantedBy=multi-user.target
