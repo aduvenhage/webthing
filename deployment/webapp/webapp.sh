@@ -31,8 +31,7 @@ python utils/create_users.py --file deployment/webapp/users.json
 
 # run app
 #flask run --host=0.0.0.0 --port=5000
-#uwsgi -H venv/ --die-on-term --socket 0.0.0.0:5000 --protocol=http --module webapp.wsgi:app
-uwsgi -H venv/ --ini $SRC_DEPLOY_PATH/config.ini
+uwsgi --ini $SRC_DEPLOY_PATH/config.ini
 
 # just wait
 sleep infinity

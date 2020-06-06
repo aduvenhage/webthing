@@ -1,44 +1,52 @@
-from utils.message_base import *
+import base64
+from marshmallow import Schema, fields
 
 
-@message
-class Command(Message):
+class CommandSchema(Schema):
     """
     Simple key/value type commands.
     """
-    def __init__(self, name=None, value=None):
-        self.name = name
-        self.value = value
+    target = fields.Str()
+    command = fields.Str()
+    data = fields.Str()
 
 
-@message
-class DeviceHealth(Message):
+class DeviceHealthSchema(Schema):
     """
     Device health and system info.
     """
-    def __init__(self, source=None, architecture=None, machine=None, processor=None, 
-                 system=None, memory_usage=None, cpu_load=None, cpu_count=None,
-                 disk_usage=None, cpu_temp=None, timestamp_ns=None):
-        self.source = source
-        self.architecture = architecture
-        self.machine = machine
-        self.processor = processor
-        self.system = system
-        self.memory_usage = memory_usage
-        self.cpu_load = cpu_load
-        self.cpu_count = cpu_count
-        self.disk_usage = disk_usage
-        self.cpu_temp = cpu_temp
-        self.timestamp_ns = timestamp_ns
+    source = fields.Str()
+    architecture = fields.Str()
+    machine = fields.Str()
+    processor = fields.Str()
+    system = fields.Str()
+    disk_usage = fields.Float()
+    memory_usage = fields.Float()
+    cpu_load = fields.Float()
+    cpu_count = fields.Integer()
+    cpu_temp = fields.Float()
+    timestamp = fields.DateTime()
 
 
-@message
-class Image(Message):
+class ImageSchema(Schema):
     """
     Base64 encoded image.
     """
-    def __init__(self, source=None, b64image=None, content_type=None, timestamp_ns=None):
-        self.source = source
-        self.b64image = b64image
-        self.content_type = content_type
-        self.timestamp_ns = timestamp_ns
+    source = fields.Str()
+    b64image = fields.Str()
+    content_type = fields.Str()
+    timestamp = fields.DateTime()
+
+    @staticmethod
+    def encode_image(raw):
+        """
+        Encode raw image data (for example, JPEG) into base64.
+        """
+        return base64.b64encode(raw).decode('utf-8')
+
+    @staticmethod
+    def decode_image(str_b64):
+        """
+        Decode base64 string into raw image data (for example, JPEG).
+        """
+        return base64.b64decode(str_b64)

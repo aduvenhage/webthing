@@ -1,8 +1,8 @@
 import psutil
 import platform
-import time
+import datetime
 
-from utils.messages import DeviceHealth
+from utils.messages import DeviceHealthSchema
 
 
 class Device:
@@ -16,18 +16,22 @@ class Device:
         """
         Gets current device stats.
         """
-        return DeviceHealth(
-            architecture=self.architecture,
+        du = psutil.disk_usage('/')
+        health = dict(
+            architecture=self.architecture[0],
             machine=self.machine,
             processor=self.processor,
             system=self.system,
             memory_usage=psutil.virtual_memory().percent,
-            cpu_load=psutil.getloadavg(),
+            cpu_load=psutil.getloadavg()[0],
             cpu_count=psutil.cpu_count(),
-            disk_usage=psutil.disk_usage('/').percent,
+            disk_usage=(1.0 - du.free / du.total) * 100,
             cpu_temp=0,
-            timestamp_ns=time.time_ns()
+            timestamp=datetime.datetime.now()
         )
+
+        schema = DeviceHealthSchema()
+        return schema.dump(health)
 
 
 __the_device = None

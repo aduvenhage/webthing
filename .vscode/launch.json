@@ -4,6 +4,7 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+
         {
             "name": "Python: Flask",
             "type": "python",
@@ -29,7 +30,19 @@
             "name": "Python: PyCam",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/pycam/app.py",
+            "program": "${workspaceFolder}/picam/app.py",
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}",
+                "DEBUG": "True"
+            },
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "Python: PcCam",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/pccam/app.py",
             "console": "integratedTerminal",
             "env": {
                 "PYTHONPATH": "${workspaceFolder}",

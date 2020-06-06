@@ -1,6 +1,0 @@
-click 
-python-dotenv 
-psutil
-pika
-opencv-python-headless==4.1.0.25
-opencv-contrib-python-headless==4.1.0.25
