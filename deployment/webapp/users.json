@@ -3,14 +3,12 @@
         "username": "user1",
         "password": "passw1",
         "role": "administrator",
-        "domains": "#.user1.#",
         "exchanges": "#"
     },
     {
         "username": "user2",
         "password": "passw2",
         "role": "management",
-        "domains": "#.user2.#",
         "exchanges": "#"
     }
 ]

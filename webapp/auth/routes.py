@@ -104,7 +104,7 @@ def mq_vhost():
 
     # check for user access to this virtual host
     vhost = request.form.get('vhost', '')
-    if user.vhost != vhost:
+    if not user.check_vhost(vhost, 'write'):
         current_app.logger.debug('MQ user/vhost denied (username=%s, vhost=%s)' % (username, vhost))
         return "deny"
 
@@ -128,7 +128,7 @@ def mq_resource():
 
     # check for user access to this virtual host
     vhost = request.form.get('vhost', '')
-    if user.vhost != vhost:
+    if not user.check_vhost(vhost, 'write'):
         current_app.logger.debug('MQ user/vhost denied (username=%s, vhost=%s)' % (username, vhost))
         return "deny"
 
@@ -165,7 +165,7 @@ def mq_topic():
 
     # check for user access to this virtual host
     vhost = request.form.get('vhost', '')
-    if user.vhost != vhost:
+    if not user.check_vhost(vhost, 'write'):
         current_app.logger.debug('MQ user/vhost denied (username=%s, vhost=%s)'
                                  % (username, vhost))
         return "deny"

@@ -3,9 +3,11 @@ from marshmallow import Schema, fields
 
 
 class CommandSchema(Schema):
+
     """
     Simple key/value type commands.
     """
+    topic = 'command'
     target = fields.Str()
     command = fields.Str()
     data = fields.Str()
@@ -15,6 +17,7 @@ class DeviceHealthSchema(Schema):
     """
     Device health and system info.
     """
+    topic = 'health'
     source = fields.Str()
     architecture = fields.Str()
     machine = fields.Str()
@@ -32,6 +35,7 @@ class ImageSchema(Schema):
     """
     Base64 encoded image.
     """
+    topic = 'image'
     source = fields.Str()
     b64image = fields.Str()
     content_type = fields.Str()

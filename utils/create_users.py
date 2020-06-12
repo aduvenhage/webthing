@@ -52,8 +52,7 @@ def main(erase_all, file):
     print('Creating superuser object ...')
     u = User(username=cfg.AMQP_USERNAME,
              email='aduvenhage@gmail.com',
-             role='administrator',
-             domains='#')
+             role='administrator')
 
     passw = cfg.AMQP_PASSWORD
     u.set_password(passw)

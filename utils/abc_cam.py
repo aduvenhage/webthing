@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 class Camera(ABC):
     """
     Base class for all camera interfaces.
+    Methods should be thread safe.
     """
     def __init__(self):
         super().__init__()
