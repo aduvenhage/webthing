@@ -3,12 +3,12 @@
         "username": "user1",
         "password": "passw1",
         "role": "administrator",
-        "exchanges": "#"
+        "exchanges": "amq.topic,"
     },
     {
         "username": "user2",
         "password": "passw2",
         "role": "management",
-        "exchanges": "#"
+        "exchanges": "amq.topic,"
     }
 ]
