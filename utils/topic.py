@@ -10,6 +10,21 @@ class Topic:
     - label: user defined label for devices
 
     """
+    @staticmethod
+    def default_exchange():
+        return 'amqp.topic'
+
+    @staticmethod
+    def wildcard_exchange():
+        return '#'
+
+    @staticmethod
+    def default_vhost():
+        return '/'
+
+    @staticmethod
+    def wildcard_vhost():
+        return '#'
 
     @classmethod
     def build_topic(cls, category, sub_category, user_id, device_id, label, delimiter='.'):

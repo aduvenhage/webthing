@@ -4,7 +4,7 @@ from flask_login import current_user, login_user, logout_user
 from flask import render_template, flash, redirect, url_for, request, current_app
 
 from utils.route_stats import route_stats
-from utils.flask_models import User
+from utils.flask_models import User, UserRole
 
 from .forms import LoginForm
 from . import bp
@@ -63,8 +63,18 @@ def logout():
 def mq_user():
     """
     RabbitMQ user auth
-    (see https://github.com/rabbitmq/rabbitmq-auth-backend-http)
+    - see https://github.com/rabbitmq/rabbitmq-auth-backend-http
+    - users can have roles that affect access to management/UI (see https://www.rabbitmq.com/management.html#permissions)
     """
+    def get_rabbitmq_role(user):
+        # translate from UserRole to supported RabbitMQ role string
+        if user.has_role(UserRole.ADMINISTRATOR):
+            return 'administrator'
+        elif user.has_role(UserRole.MANAGER):
+            return 'management'
+        else:
+            return 'guest'
+
     username = request.form.get('username', '')
     user = User.query.filter_by(username=username).first()
 
@@ -78,10 +88,9 @@ def mq_user():
         current_app.logger.debug('MQ user denied (username=%s)' % (username))
         return "deny"
 
-    # NOTE: users can have one of many roles that affect access (see https://www.rabbitmq.com/management.html#permissions) to management/UI
     if user.role:
         current_app.logger.debug('MQ user allowed (username=%s, role=%s)' % (username, user.role))
-        return "allow " + str(user.role)
+        return "allow " + get_rabbitmq_role(user)
 
     else:
         current_app.logger.debug('MQ user allowed (username=%s)' % (username))
@@ -121,7 +130,6 @@ def mq_resource():
     """
     username = request.form.get('username', '')
     user = User.query.filter_by(username=username).first()
-
     if user is None:
         current_app.logger.debug('MQ user denied (username=%s)' % (username))
         return "deny"
@@ -170,7 +178,7 @@ def mq_topic():
                                  % (username, vhost))
         return "deny"
 
-    # NOTE: try to match auth topic key to user routing keys
+    # check user routing keys
     routing_key = request.form.get('routing_key', '')
     permission = request.form.get('permission', '')
 
@@ -180,16 +188,16 @@ def mq_topic():
         return "deny"
 
     # check user access to specific exchanges
-    topic_resource = request.form.get('resource', '')  # should always be 'topic'
-    exchange_name = request.form.get('name', '')
-    permission = request.form.get('permission', '')
+    resource_type = request.form.get('resource', '')
+    resource_name = request.form.get('name', '')
 
-    if not user.check_exchange(exchange_name, permission):
-        current_app.logger.debug('MQ user/exchange denied (username=%s, exchange=%s, permission=%s)'
-                                 % (username, exchange_name, permission))
-        return "deny"
+    if resource_type == 'topic':
+        if not user.check_exchange(resource_name, permission):
+            current_app.logger.debug('MQ user/exchange denied (username=%s, exchange=%s, permission=%s)'
+                                     % (username, resource_name, permission))
+            return "deny"
 
     current_app.logger.debug('MQ user/topic allowed (username=%s, vhost=%s, resource=%s, name=%s, routing_key=%s, permission=%s)'
-                             % (username, vhost, topic_resource, exchange_name, routing_key, permission))
+                             % (username, vhost, resource_type, resource_name, routing_key, permission))
 
     return "allow"

@@ -2,7 +2,7 @@ import os
 import click
 import json
 
-from utils.flask_models import User
+from utils.flask_models import User, UserRole
 from utils.flask_app import create_flask_app, db
 from utils.config import config
 
@@ -52,7 +52,7 @@ def main(erase_all, file):
     print('Creating superuser object ...')
     u = User(username=cfg.AMQP_USERNAME,
              email='aduvenhage@gmail.com',
-             role='administrator')
+             role=UserRole.ADMINISTRATOR)
 
     passw = cfg.AMQP_PASSWORD
     u.set_password(passw)
@@ -70,6 +70,7 @@ def main(erase_all, file):
 
                 u = User(**user)
                 u.set_password(passw)
+                u.role = UserRole(u.role)
 
                 db.session.add(u)
                 db.session.commit()

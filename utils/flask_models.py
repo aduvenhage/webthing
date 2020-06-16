@@ -1,3 +1,5 @@
+import enum
+
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -5,9 +7,19 @@ from utils.flask_app import db, login
 from utils.topic import Topic
 
 
+class UserRole(enum.Enum):
+    ADMINISTRATOR = 'administrator'     # can configure, read and write anything
+    MANAGER = 'manager'                 # can read anything; can only write on user's own topic 
+    GUEST = 'guest'                     # can only read and write on user's own topic
+
+    @classmethod
+    def default(cls):
+        return cls.GUEST
+
+
 class User(UserMixin, db.Model):
     """
-    User details and password management
+    User details and password management.
     """
 
     # model attributes
@@ -15,35 +27,31 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(64), index=True, unique=True)
     email = db.Column(db.String(120), index=True, unique=True)
     password_hash = db.Column(db.String(128))
-    role = db.Column(db.String(64), index=True, default='guest')
+    role = db.Column(db.Enum(UserRole), index=True, default=UserRole.default())
 
-    vhost = db.Column(db.String(64), index=True, default='/')
-    exchanges = db.Column(db.String(256), index=True, default='#')
+    vhost = db.Column(db.String(64), index=True, default=Topic.default_vhost())
+    exchanges = db.Column(db.String(256), index=True, default=Topic.default_exchange())
 
     def set_password(self, password):
-        """
-        Set new hashed password.
-        """
+        # set password hash
         self.password_hash = generate_password_hash(password)
 
     def check_password(self, password):
-        """
-        Check for a password match.
-        """
         return check_password_hash(self.password_hash, password)
 
-    def check_routing_key(self, key, permission):
-        """
-        Match a single topic string (with given permission).
-        """
-        try:
-            # NOTE: using same matching on write/pub and read/sub permissions
-            if (permission == 'write' or permission == 'read'):
-                if self.role == 'administrator':
-                    return True
+    def has_role(self, role):
+        return self.role == role
 
-                else:
-                    return self.username == Topic.get_topic_user_id(key)
+    def check_routing_key(self, key, permission):
+        if self.has_role(UserRole.ADMINISTRATOR):
+            return True
+
+        elif self.has_role(UserRole.MANAGER) and permission == 'read':
+            return True
+
+        try:
+            if (permission == 'write' or permission == 'read'):
+                return self.username == Topic.get_topic_user_id(key)
 
         except Exception:
             pass
@@ -52,23 +60,29 @@ class User(UserMixin, db.Model):
         return False
 
     def check_exchange(self, key, permission):
-        """
-        Match a single exchange string (with given permission).
-        """
-        # NOTE: using same matching on write/pub and read/sub permissions
+        if self.has_role(UserRole.ADMINISTRATOR):
+            return True
+
         if (permission == 'write' or permission == 'read'):
-            return key in self.exchanges.split(',')
+            if self.exchanges == Topic.wildcard_exchange():
+                return True
+
+            else:
+                return key in self.exchanges.split(',')
 
         # anything else fails auth
         return False
 
     def check_vhost(self, key, permission):
-        """
-        Match a single vhost string (with given permission).
-        """
-        # NOTE: using same matching on write/pub and read/sub permissions
+        if self.has_role(UserRole.ADMINISTRATOR):
+            return True
+
         if (permission == 'write' or permission == 'read'):
-            return key == self.vhost
+            if self.vhost == Topic.wildcard_vhost():
+                return True
+
+            else:
+                return key == self.vhost
 
         # anything else fails auth
         return False
