@@ -12,7 +12,7 @@ class Device:
         self.processor = platform.processor()
         self.system = platform.system()
 
-    def get_health(self, **kwargs):
+    def get_health(self):
         """
         Gets current device stats.
         """
@@ -27,10 +27,12 @@ class Device:
             cpu_count=psutil.cpu_count(),
             disk_usage=(1.0 - du.free / du.total) * 100,
             cpu_temp=0,
-            timestamp=datetime.datetime.now()
+            timestamp=datetime.datetime.now(),
+            connected=False,
+            status='',
+            temperature=0,
+            voltage=0
         )
-
-        health.update(kwargs)
 
         schema = DeviceHealthSchema()
         return schema.dump(health)

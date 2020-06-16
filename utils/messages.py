@@ -29,6 +29,10 @@ class DeviceHealthSchema(Schema):
     cpu_count = fields.Integer()
     cpu_temp = fields.Float()
     timestamp = fields.DateTime()
+    connected = fields.Boolean()
+    status = fields.Str()
+    temperature = fields.Float()
+    battery_voltage = fields.Float()
 
 
 class ImageSchema(Schema):
