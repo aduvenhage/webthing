@@ -1,5 +1,9 @@
 
 # Full Stack Rabbit Attack
+Working on a python framework for home automation, cameras and monitoring.
+
+- busy with cameras
+- next step is victron mppt monitoring
 
 ## General
 - RabbitMQ
